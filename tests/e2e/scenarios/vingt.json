@@ -1,0 +1,64 @@
+{
+ "name": "vingt",
+ "path": "/?qa=1#/projets",
+ "steps": [
+  {
+   "viewport": [
+    1280,
+    800
+   ]
+  },
+  {
+   "waitFor": "document.querySelector('[data-folder-row]')",
+   "timeout": 15000,
+   "label": "le dossier de vingt"
+  },
+  {
+   "realclick": {
+    "sel": "[data-folder-row] a"
+   }
+  },
+  {
+   "waitFor": "document.querySelector('.lib-head-actions [data-folder-menu]')",
+   "timeout": 8000,
+   "label": "la page du dossier"
+  },
+  {
+   "wait": 600
+  },
+  {
+   "eval": "document.querySelectorAll('.p-card, .p-row').length"
+  },
+  {
+   "shot": "20-projets"
+  },
+  {
+   "realclick": {
+    "sel": ".lib-head-actions [data-folder-menu]"
+   }
+  },
+  {
+   "waitFor": "[...document.querySelectorAll('#menu .menu-item')].some(i=>i.textContent.includes('Exporter la liste'))",
+   "timeout": 5000,
+   "label": "le menu"
+  },
+  {
+   "realclick": {
+    "sel": "#menu .menu-item",
+    "text": "Exporter la liste (.csv)"
+   }
+  },
+  {
+   "waitFor": "[...document.querySelectorAll('.toast')].some(t=>t.textContent.includes('exportée : 20 projets'))",
+   "timeout": 5000,
+   "label": "la liste des vingt est exportée"
+  },
+  {
+   "assert": "![...document.querySelectorAll('.toast.error')].length",
+   "label": "aucune erreur"
+  },
+  {
+   "shot": "20-csv"
+  }
+ ]
+}

@@ -1,0 +1,91 @@
+{
+ "name": "dossier",
+ "path": "/?qa=1#/projets",
+ "steps": [
+  {
+   "viewport": [
+    1500,
+    1000
+   ]
+  },
+  {
+   "waitFor": "document.querySelector('[data-folder-row]')",
+   "timeout": 15000,
+   "label": "un dossier dans le menu"
+  },
+  {
+   "realclick": {
+    "sel": "[data-folder-row] a"
+   }
+  },
+  {
+   "waitFor": "document.querySelector('.lib-head-actions [data-folder-menu]')",
+   "timeout": 8000,
+   "label": "la page du dossier"
+  },
+  {
+   "realclick": {
+    "sel": ".lib-head-actions [data-folder-menu]"
+   }
+  },
+  {
+   "waitFor": "document.querySelector('#menu button.menu-item')",
+   "timeout": 5000,
+   "label": "le menu du dossier s'ouvre"
+  },
+  {
+   "assert": "['Copier le point d’avancement', 'Exporter la liste (.csv)'].every(label => [...document.querySelectorAll('#menu .menu-item')].some(item => item.textContent.includes(label)))",
+   "label": "les deux lectures du dossier"
+  },
+  {
+   "assert": "![...document.querySelectorAll('#menu .menu-item')].some(item => /preset/i.test(item.textContent))",
+   "label": "aucun preset dans le menu du dossier"
+  },
+  {
+   "shot": "dossier-menu"
+  },
+  {
+   "realclick": {
+    "sel": "#menu .menu-item",
+    "text": "Copier le point d’avancement"
+   }
+  },
+  {
+   "waitFor": "[...document.querySelectorAll('.toast')].some(t => t.textContent.includes('Point d’avancement'))",
+   "timeout": 5000,
+   "label": "le point d'avancement est copié"
+  },
+  {
+   "assert": "![...document.querySelectorAll('.toast.error')].length",
+   "label": "aucun toast d'erreur"
+  },
+  {
+   "shot": "dossier-point"
+  },
+  {
+   "realclick": {
+    "sel": ".lib-head-actions [data-folder-menu]"
+   }
+  },
+  {
+   "waitFor": "[...document.querySelectorAll('#menu .menu-item')].some(i => i.textContent.includes('Exporter la liste'))",
+   "timeout": 5000,
+   "label": "le menu revient"
+  },
+  {
+   "realclick": {
+    "sel": "#menu .menu-item",
+    "text": "Exporter la liste (.csv)"
+   }
+  },
+  {
+   "waitFor": "[...document.querySelectorAll('.toast')].some(t => t.textContent.includes('exportée : 3 projets'))",
+   "timeout": 5000,
+   "label": "la liste des trois projets est exportée"
+  },
+  {
+   "assert": "![...document.querySelectorAll('.toast.error')].length",
+   "label": "toujours aucune erreur"
+  }
+ ]
+}

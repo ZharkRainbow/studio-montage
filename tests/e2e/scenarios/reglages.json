@@ -1,0 +1,36 @@
+{
+ "name": "reglages",
+ "path": "/?qa=1#/reglages",
+ "steps": [
+  {
+   "viewport": [
+    1600,
+    1000
+   ]
+  },
+  {
+   "waitFor": "document.querySelector('#settings-view')?.textContent.includes('FFmpeg et FFprobe')",
+   "timeout": 15000,
+   "label": "Réglages chargés"
+  },
+  {
+   "assert": "['Python 3.10 ou plus', 'FFmpeg et FFprobe', 'whisper.cpp', 'Modèle Whisper', 'Polices ZT Nature', 'Google Chrome'].every(label => document.querySelector('#settings-view').textContent.includes(label))",
+   "label": "les six prérequis du studio réduit, Chrome compris"
+  },
+  {
+   "assert": "['HyperFrames', 'DeepFilterNet', 'ImageMagick', 'Node.js', \"LUT d\\u2019étalonnage\", 'Texte animé'].every(gone => !document.querySelector('#settings-view').textContent.includes(gone))",
+   "label": "plus rien des étapes disparues"
+  },
+  {
+   "assert": "fetch('/api/setup').then(r => r.json()).then(d => d.requirements.length === 6 && d.requirements.every(item => document.querySelector('#settings-view').textContent.includes(item.label)))",
+   "label": "le diagnostic et la page disent la même chose"
+  },
+  {
+   "assert": "![...document.querySelectorAll('.toast.error')].length",
+   "label": "aucun toast d'erreur"
+  },
+  {
+   "shot": "reglages"
+  }
+ ]
+}

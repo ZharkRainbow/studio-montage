@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="Studio local de montage et de relecture vidéo.">
+  <title>Atelier — Studio vidéo local</title>
+  <link rel="icon" href="/static/logo/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/static/logo/favicon.ico" sizes="any">
+  <link rel="apple-touch-icon" href="/static/logo/apple-touch-icon.png">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div id="app" class="app" aria-busy="true">
+
+    <div class="shell" id="shell">
+      <aside class="sidebar" aria-label="Navigation">
+        <button class="brand" id="home-button" type="button" aria-label="Accueil">
+          <img class="brand-mark" src="/static/logo/atelier-logo.svg" alt="" aria-hidden="true" width="28" height="28">
+          <span class="brand-text"><strong>Atelier</strong><small>studio vidéo local</small></span>
+        </button>
+
+        <button class="search-trigger" type="button" data-open-palette>
+          <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.2 13.2 3.3 3.3"/></svg>
+          <span>Rechercher</span>
+          <kbd>⌘K</kbd>
+        </button>
+
+        <nav class="side-nav" id="side-nav" aria-label="Bibliothèque">
+          <span class="side-indicator" id="side-indicator" aria-hidden="true"></span>
+          <a class="side-link" href="#/" data-route="home">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 9 10 3.5 16.5 9v7a1 1 0 0 1-1 1h-3.5v-4.5h-4V17H4.5a1 1 0 0 1-1-1Z"/></svg>
+            <span>Accueil</span>
+          </a>
+          <a class="side-link" href="#/projets" data-route="all">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="3.5" width="5.5" height="5.5" rx="1.3"/><rect x="11.5" y="3.5" width="5.5" height="5.5" rx="1.3"/><rect x="3" y="11" width="5.5" height="5.5" rx="1.3"/><rect x="11.5" y="11" width="5.5" height="5.5" rx="1.3"/></svg>
+            <span>Tous les projets</span><b class="side-count" id="count-all"></b>
+          </a>
+          <a class="side-link" href="#/favoris" data-route="favorites">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m10 3.3 2 4.2 4.6.6-3.4 3.2.9 4.5L10 13.6l-4.1 2.2.9-4.5-3.4-3.2 4.6-.6Z"/></svg>
+            <span>Favoris</span><b class="side-count" id="count-favorites"></b>
+          </a>
+
+          <p class="side-group-head">Bibliothèque</p>
+          <a class="side-link" href="#/animations" data-route="animations">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="4.5" width="11" height="11" rx="2"/><path d="M16.5 7v8.5a1 1 0 0 1-1 1H7"/><path d="m7.8 7.8 3.6 2.2-3.6 2.2Z"/></svg>
+            <span>Animations</span><b class="side-count" id="count-animations"></b>
+          </a>
+          <a class="side-link" href="#/presets" data-route="presets">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="7" cy="7" r="3"/><circle cx="13" cy="13" r="3"/><path d="M13 4h4M3 16h4"/></svg>
+            <span>Presets</span><b class="side-count" id="count-presets"></b>
+          </a>
+
+          <p class="side-group-head">Agents</p>
+          <a class="side-link" href="#/skills" data-route="skills">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3.2 12 7l4.2.5-3.1 2.9.8 4.1L10 12.6l-3.9 1.9.8-4.1L3.8 7.5 8 7Z"/></svg>
+            <span>Skills</span>
+          </a>
+        </nav>
+
+        <div class="side-section">
+          <div class="side-section-head">
+            <span>Dossiers</span>
+            <button class="icon-button tiny" type="button" id="new-folder-button" title="Nouveau dossier" aria-label="Nouveau dossier">
+              <svg viewBox="0 0 20 20"><path d="M10 5v10M5 10h10"/></svg>
+            </button>
+          </div>
+          <div class="folder-list" id="folder-list"></div>
+        </div>
+
+        <div class="sidebar-foot" id="sidebar-foot"></div>
+      </aside>
+
+      <main class="main" id="main">
+        <!-- Un rendu en cours se voit depuis n'importe quelle page du menu. -->
+        <div class="rendu-banniere" id="rendu-banniere" role="status" hidden></div>
+        <section class="view home-view" id="home-view" aria-label="Accueil">
+          <div class="welcome" id="welcome">
+            <div class="welcome-copy">
+              <h1>Du fichier brut au reel relu,<br><em>sans boîte noire.</em></h1>
+              <p>Coupez les blancs, posez le titre, puis relisez le rendu mot à mot et notez vos retours. Les médias restent en local et chaque consigne part vers Claude en clair.</p>
+              <div class="welcome-actions">
+                <button class="button primary large" id="new-project-button" type="button">
+                  <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4v12M4 10h12"/></svg>Créer un projet
+                </button>
+              </div>
+            </div>
+            <div class="welcome-visual" aria-hidden="true">
+              <div class="mv-orbit mv-orbit-one"></div><div class="mv-orbit mv-orbit-two"></div>
+              <div class="mv-scene">
+                <div class="mv-rush">
+                  <div class="mv-rush-screen"><i></i><i></i><i></i><i></i></div>
+                  <div class="mv-speaker"></div>
+                  <div class="mv-transcript"><span></span><span class="hit"></span><span></span></div>
+                  <div class="mv-crop"><b></b><b></b><b></b><b></b></div>
+                  <span class="mv-rush-label">Rush 16:9 · 01:12:40</span>
+                </div>
+                <div class="mv-reel">
+                  <div class="mv-reel-speaker"></div>
+                  <div class="mv-caption"><span>Une</span> <span>idée</span><br><span>qui</span> <span>reste.</span></div>
+                  <div class="mv-title">Systèmes &amp; talents</div>
+                  <div class="mv-wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                </div>
+                <div class="mv-tally"><small>Retours</small><b></b><span>notés</span></div>
+              </div>
+              <ol class="mv-steps"><li>Montage</li><li>Relecture</li></ol>
+              <div class="local-chip"><i></i>100 % local</div>
+            </div>
+          </div>
+          <div class="home-continue" id="home-continue"></div>
+        </section>
+
+        <section class="view library-view" id="library-view" aria-label="Bibliothèque" hidden>
+          <header class="lib-head">
+            <div class="lib-title">
+              <span class="eyebrow" id="lib-kicker">Bibliothèque</span>
+              <h1 id="lib-heading">Tous les projets</h1>
+              <p id="lib-sub"></p>
+            </div>
+            <div class="lib-head-actions" id="lib-head-actions"></div>
+          </header>
+          <div class="lib-toolbar">
+            <label class="search-field">
+              <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.2 13.2 3.3 3.3"/></svg>
+              <input id="lib-search" type="search" placeholder="Rechercher un projet" autocomplete="off" aria-label="Rechercher un projet">
+              <kbd>/</kbd>
+            </label>
+            <div class="chips" id="lib-filters" role="tablist" aria-label="Filtrer par statut"></div>
+            <div class="lib-toolbar-end">
+              <label class="select-field">
+                <select id="lib-sort" aria-label="Trier">
+                  <option value="updated">Modifiés récemment</option>
+                  <option value="created">Créés récemment</option>
+                  <option value="name">Nom A → Z</option>
+                </select>
+              </label>
+              <div class="segmented icon-toggle" role="group" aria-label="Affichage">
+                <button type="button" data-view-mode="grid" title="Grille" aria-label="Grille"><svg viewBox="0 0 20 20"><rect x="3" y="3.5" width="5.5" height="5.5" rx="1.3"/><rect x="11.5" y="3.5" width="5.5" height="5.5" rx="1.3"/><rect x="3" y="11" width="5.5" height="5.5" rx="1.3"/><rect x="11.5" y="11" width="5.5" height="5.5" rx="1.3"/></svg></button>
+                <button type="button" data-view-mode="list" title="Liste" aria-label="Liste"><svg viewBox="0 0 20 20"><path d="M7 5h10M7 10h10M7 15h10M3.5 5h.01M3.5 10h.01M3.5 15h.01"/></svg></button>
+              </div>
+            </div>
+          </div>
+          <div class="lib-content" id="lib-content"></div>
+        </section>
+
+        <section class="view animations-view" id="animations-view" aria-label="Animations" hidden></section>
+        <section class="view presets-view" id="presets-view" aria-label="Presets" hidden></section>
+        <section class="view chantier-view" id="chantier-view" aria-label="Section à venir" hidden></section>
+        <section class="view settings-view" id="settings-view" aria-label="Réglages" hidden></section>
+      </main>
+    </div>
+
+    <div class="editor" id="editor" hidden>
+      <header class="topbar">
+        <div class="top-left">
+          <button class="icon-button" type="button" id="back-button" title="Retour à la bibliothèque" aria-label="Retour à la bibliothèque">
+            <svg viewBox="0 0 20 20"><path d="M12 4.5 6.5 10l5.5 5.5"/></svg>
+          </button>
+          <nav class="crumbs" aria-label="Fil d’Ariane">
+            <a href="#/projets" class="crumb" id="crumb-folder">Projets</a>
+            <span class="crumb-sep" aria-hidden="true">/</span>
+            <button class="crumb current" type="button" id="project-button" aria-haspopup="menu">
+              <span id="project-name">Aucun projet</span>
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>
+            </button>
+          </nav>
+        </div>
+        <nav class="steps" id="steps" aria-label="Étapes du montage">
+          <span class="steps-indicator" id="steps-indicator" aria-hidden="true"></span>
+          <button type="button" data-step="montage"><span>1</span>Montage</button>
+          <button type="button" data-step="review"><span>2</span>Relecture</button>
+        </nav>
+        <div class="top-actions">
+          <div class="jobs-menu" id="jobs-menu">
+            <button class="jobs-trigger" id="jobs-toggle" type="button" aria-haspopup="true" aria-expanded="false" title="Tâches en arrière-plan">
+              <span class="jobs-ring" aria-hidden="true"><svg viewBox="0 0 20 20"><circle class="track" cx="10" cy="10" r="7"/><circle class="fill" cx="10" cy="10" r="7" pathLength="100"/></svg></span>
+              <svg class="jobs-idle" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="6.5"/><path d="M10 6.5V10l2.5 1.5"/></svg>
+              <span id="jobs-label">Tâches</span>
+            </button>
+            <div class="jobs-pop" id="jobs-list" hidden></div>
+          </div>
+          <span class="save-state" id="save-state"><i></i><span>À jour</span></span>
+          <button class="icon-button" id="undo-button" type="button" title="Annuler (⌘Z)" aria-label="Annuler" disabled>
+            <svg viewBox="0 0 20 20"><path d="M7.5 6.5H3.5v-4M4 6.5a6.5 6.5 0 1 1 .5 7.5"/></svg>
+          </button>
+          <button class="icon-button" id="redo-button" type="button" title="Rétablir (⇧⌘Z)" aria-label="Rétablir" disabled>
+            <svg viewBox="0 0 20 20"><path d="M12.5 6.5h4v-4M16 6.5a6.5 6.5 0 1 0-.5 7.5"/></svg>
+          </button>
+          <button class="icon-button" type="button" data-open-palette title="Commandes (⌘K)" aria-label="Commandes">
+            <svg viewBox="0 0 20 20"><circle cx="9" cy="9" r="5.5"/><path d="m13.2 13.2 3.3 3.3"/></svg>
+          </button>
+          <button class="button outline ecarter" id="ecarter-button" type="button" disabled title="Sortir ce projet de la boucle sans le supprimer : ni relecture, ni validation">Ne pas garder</button>
+          <button class="button primary" id="send-review-button" type="button" disabled title="Exporter ce montage avec son encadré et ouvrir la relecture dessus (⌘↩)">Envoyer en relecture</button>
+          <button class="button primary" id="validate-button" type="button" disabled hidden title="Valider ce short et passer au suivant (⌘↩)">Valider</button>
+        </div>
+      </header>
+
+      <main id="workspace" class="workspace">
+        <section class="stage-panel">
+          <div class="stage-toolbar" id="stage-toolbar"></div>
+          <div class="stage-body" id="stage-body"></div>
+          <div class="transport" id="transport"></div>
+        </section>
+
+        <aside class="inspector panel" aria-label="Réglages">
+          <div class="inspector-head">
+            <div><span class="eyebrow">Réglages</span><h2 id="inspector-title">Projet</h2></div>
+            <div class="inspector-actions" id="inspector-actions"></div>
+          </div>
+          <div id="inspector-content" class="inspector-content"></div>
+        </aside>
+      </main>
+
+    </div>
+  </div>
+
+  <div class="toasts" id="toasts" aria-live="polite" aria-relevant="additions"></div>
+  <div class="menu" id="menu" role="menu" hidden></div>
+
+  <dialog id="project-dialog" class="dialog">
+    <form method="dialog" class="dialog-card" id="project-form">
+      <div class="dialog-head"><div><span class="eyebrow">Nouveau chantier</span><h2>Créer un projet</h2></div><button class="icon-button" type="button" data-dialog-close aria-label="Fermer"><svg viewBox="0 0 20 20"><path d="m5 5 10 10M15 5 5 15"/></svg></button></div>
+      <label class="field"><span>Nom du projet</span><input id="new-project-name" name="name" autocomplete="off" required maxlength="80" placeholder="Masterclass recrutement"></label>
+      <label class="field"><span>Dossier</span><select id="new-project-folder" name="folder"></select></label>
+      <p class="field-help">Le projet et ses rendus sont enregistrés dans le dossier local du studio.</p>
+      <div class="dialog-actions"><button class="button ghost" type="button" data-dialog-close>Annuler</button><button class="button primary" id="create-project-submit" value="default" type="submit">Créer le projet</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="prompt-dialog" class="dialog">
+    <form method="dialog" class="dialog-card" id="prompt-form">
+      <div class="dialog-head"><div><span class="eyebrow" id="prompt-kicker">Renommer</span><h2 id="prompt-title">Nouveau nom</h2></div><button class="icon-button" type="button" data-dialog-close aria-label="Fermer"><svg viewBox="0 0 20 20"><path d="m5 5 10 10M15 5 5 15"/></svg></button></div>
+      <p class="dialog-hint" id="prompt-hint" hidden></p>
+      <label class="field"><span id="prompt-label">Nom</span><input id="prompt-input" autocomplete="off" required maxlength="150"></label>
+      <div class="dialog-actions"><button class="button ghost" type="button" data-dialog-close>Annuler</button><button class="button primary" id="prompt-submit" value="default" type="submit">Valider</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="source-dialog" class="dialog wide">
+    <form method="dialog" class="dialog-card" id="source-form">
+      <div class="dialog-head"><div><span class="eyebrow">Média local</span><h2>Choisir la vidéo du reel</h2></div><button class="icon-button" type="button" data-dialog-close aria-label="Fermer"><svg viewBox="0 0 20 20"><path d="m5 5 10 10M15 5 5 15"/></svg></button></div>
+      <button class="finder-pick" type="button" data-pick-file="video" id="source-pick">
+        <span class="finder-icon"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 6.2A1.7 1.7 0 0 1 4.7 4.5h3.1l1.8 1.9h5.7A1.7 1.7 0 0 1 17 8.1v6.2a1.7 1.7 0 0 1-1.7 1.7H4.7A1.7 1.7 0 0 1 3 14.3Z"/></svg></span>
+        <span class="finder-text"><strong>Choisir la vidéo dans le Finder</strong><small id="source-pick-hint">S’ouvre dans Téléchargements</small></span>
+        <svg class="finder-arrow" viewBox="0 0 20 20" aria-hidden="true"><path d="m8 5 5 5-5 5"/></svg>
+      </button>
+      <div class="picked-file" id="source-picked" hidden>
+        <span class="picked-icon"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="4" width="14" height="12" rx="2"/><path d="M3 8h14M7 4v4m6-4v4M7 12v4m6-4v4M3 12h14"/></svg></span>
+        <span class="picked-text"><strong id="source-picked-name"></strong><small id="source-picked-dir"></small></span>
+        <button class="button ghost compact" type="button" data-pick-file="video">Changer</button>
+      </div>
+      <div class="divider"><span>ou colle un chemin</span></div>
+      <label class="field"><span>Chemin absolu du fichier vidéo</span><div class="path-field"><input id="source-path" name="path" autocomplete="off" required placeholder="/home/vous/videos/reel-brut.mp4"><span>LOCAL</span></div></label>
+      <p class="field-help">Un projet tient sur un seul fichier, déjà tourné et déjà coupé. Il n’est jamais copié ni envoyé : le studio le lit là où il est.</p>
+      <div class="dialog-actions"><button class="button ghost" type="button" data-dialog-close>Annuler</button><button class="button primary" id="source-submit" value="default" type="submit">Analyser la vidéo</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="version-dialog" class="dialog wide">
+    <form method="dialog" class="dialog-card" id="version-form">
+      <div class="dialog-head"><div><span class="eyebrow">Rendu à relire</span><h2>Déposer une version</h2></div><button class="icon-button" type="button" data-dialog-close aria-label="Fermer"><svg viewBox="0 0 20 20"><path d="m5 5 10 10M15 5 5 15"/></svg></button></div>
+      <button class="finder-pick" type="button" data-pick-file="version" id="version-pick">
+        <span class="finder-icon"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 6.2A1.7 1.7 0 0 1 4.7 4.5h3.1l1.8 1.9h5.7A1.7 1.7 0 0 1 17 8.1v6.2a1.7 1.7 0 0 1-1.7 1.7H4.7A1.7 1.7 0 0 1 3 14.3Z"/></svg></span>
+        <span class="finder-text"><strong>Choisir le MP4 rendu</strong><small id="version-pick-hint">S’ouvre dans Téléchargements</small></span>
+        <svg class="finder-arrow" viewBox="0 0 20 20" aria-hidden="true"><path d="m8 5 5 5-5 5"/></svg>
+      </button>
+      <div class="picked-file" id="version-picked" hidden>
+        <span class="picked-icon"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="4" width="14" height="12" rx="2"/><path d="M3 8h14M7 4v4m6-4v4M7 12v4m6-4v4M3 12h14"/></svg></span>
+        <span class="picked-text"><strong id="version-picked-name"></strong><small id="version-picked-dir"></small></span>
+        <button class="button ghost compact" type="button" data-pick-file="version">Changer</button>
+      </div>
+      <div class="divider"><span>ou colle un chemin</span></div>
+      <label class="field"><span>Chemin absolu du MP4 rendu</span><div class="path-field"><input id="version-path" name="path" autocomplete="off" required placeholder="/home/vous/videos/reel-v1.mp4"><span>LOCAL</span></div></label>
+      <p class="field-help">Chaque dépôt devient une version : V1, V2… Le studio lit ce fichier tel quel et le transcrit mot à mot pour la relecture.</p>
+      <div class="dialog-actions"><button class="button ghost" type="button" data-dialog-close>Annuler</button><button class="button primary" id="version-submit" value="default" type="submit">Déposer la version</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="consigne-dialog" class="dialog wide">
+    <form method="dialog" class="dialog-card" id="consigne-form">
+      <div class="dialog-head"><div><span class="eyebrow">Pour Claude</span><h2>Consigne pour Claude</h2></div><button class="icon-button" type="button" data-dialog-close aria-label="Fermer"><svg viewBox="0 0 20 20"><path d="m5 5 10 10M15 5 5 15"/></svg></button></div>
+      <p class="dialog-copy" id="consigne-count"></p>
+      <p class="dialog-warning" id="consigne-notice" hidden></p>
+      <label class="field"><span>Consigne</span><textarea id="consigne-text" rows="14" spellcheck="false"></textarea></label>
+      <label class="check"><input type="checkbox" id="consigne-resolve"><span>Marquer ces retours comme résolus après la copie</span></label>
+      <div class="dialog-actions"><button class="button ghost" type="button" data-dialog-close>Annuler</button><button class="button primary" type="button" data-consigne-copy>Copier<kbd>⌘↩</kbd></button></div>
+    </form>
+  </dialog>
+
+  <dialog id="confirm-dialog" class="dialog">
+    <form method="dialog" class="dialog-card">
+      <div class="dialog-head"><div><span class="eyebrow">Confirmation</span><h2 id="confirm-title">Continuer ?</h2></div></div>
+      <p id="confirm-copy" class="dialog-copy"></p>
+      <div class="dialog-actions"><button class="button ghost" type="button" data-dialog-close>Annuler</button><button class="button primary" id="confirm-action" value="default">Continuer</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="palette" class="palette" aria-label="Palette de commandes">
+    <div class="palette-card">
+      <label class="palette-search">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.2 13.2 3.3 3.3"/></svg>
+        <input id="palette-input" type="text" role="combobox" aria-expanded="true" aria-controls="palette-list" autocomplete="off" spellcheck="false" placeholder="Rechercher un projet, un dossier, une action, ou une phrase dite">
+        <span class="palette-count" id="palette-count"></span>
+      </label>
+      <ul class="palette-list" id="palette-list" role="listbox"></ul>
+      <div class="palette-foot"><span><kbd>↑</kbd><kbd>↓</kbd> naviguer</span><span><kbd>↵</kbd> ouvrir</span><span><kbd>esc</kbd> fermer</span></div>
+    </div>
+  </dialog>
+
+  <template id="spinner-template"><span class="spinner" aria-hidden="true"></span></template>
+  <script type="module" src="/static/app.js"></script>
+</body>
+</html>

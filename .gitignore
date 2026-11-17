@@ -1,0 +1,29 @@
+# proxys et rushes : lourds, regenerables
+outil-recadrage/*.mp4
+outil-recadrage/*.m4a
+*.mp4
+*.mov
+*.wav
+__pycache__/
+.DS_Store
+
+# Local studio projects, caches, credentials and test evidence
+.studio-data/
+.studio-test-data/
+.env
+.env.*
+!.env.example
+*.aiff
+*.m4a
+*.mp3
+.coverage
+
+# Moteur de texte animé : dépendances et caches installés localement
+studio/overlay/node_modules/
+studio/overlay/.cache/
+
+# HyperFrames : état local, historique et rendus intermédiaires
+.hyperframes/
+.thumbnails/
+renders/
+!bibliotheque/animations/*/apercu.mp4

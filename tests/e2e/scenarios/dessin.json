@@ -1,0 +1,291 @@
+{
+ "name": "dessin",
+ "path": "/?qa=1#/projets",
+ "timeout": 300000,
+ "steps": [
+  {
+   "viewport": [
+    1600,
+    1000
+   ]
+  },
+  {
+   "waitFor": "document.querySelector('[data-open-project]')",
+   "timeout": 15000,
+   "label": "bibliothèque"
+  },
+  {
+   "realclick": "[data-open-project]"
+  },
+  {
+   "waitFor": "A.state.project && document.querySelector('#steps button')",
+   "timeout": 20000,
+   "label": "projet ouvert"
+  },
+  {
+   "realclick": {
+    "sel": "#steps button",
+    "text": "Relecture"
+   }
+  },
+  {
+   "waitFor": "document.querySelector('#review-video').readyState >= 2 && document.querySelector('[data-review-draw]')",
+   "timeout": 30000,
+   "label": "vidéo prête"
+  },
+  {
+   "realclick": "[data-review-draw]"
+  },
+  {
+   "waitFor": "A.state.review.drawing && !document.querySelector('#review-canvas').hidden",
+   "label": "mode Dessiner"
+  },
+  {
+   "assert": "A.state.review.tool === 'free'",
+   "label": "le feutre est l'outil par défaut"
+  },
+  {
+   "assert": "(() => { const b = document.querySelector('[data-draw-tool=\"free\"]'); return b.classList.contains('active') && b.getAttribute('aria-checked') === 'true'; })()",
+   "label": "et le bouton Main libre le montre"
+  },
+  {
+   "assert": "[...document.querySelectorAll('[data-draw-tool]')].map(b => b.dataset.drawTool).join(' ') === 'free circle arrow square text'",
+   "label": "les cinq outils, cercle flèche carré gardés"
+  },
+  {
+   "assert": "!document.querySelector('[data-draw-clear]')",
+   "label": "aucun bouton « Effacer tout »"
+  },
+  {
+   "assert": "A.state.review.strokes.length === 0",
+   "label": "la toile part vide"
+  },
+  {
+   "drag": {
+    "sel": "#review-canvas",
+    "dx": 95,
+    "dy": 75,
+    "fx": 0.28,
+    "fy": 0.3
+   }
+  },
+  {
+   "assert": "(() => { const s = A.state.review.strokes; return s.length === 1 && s[0].kind === 'free' && s[0].points.length >= 4 && s[0].points.every(p => p.x > 0 && p.x < 1 && p.y > 0 && p.y < 1); })()",
+   "label": "un trait au feutre, suivi point par point"
+  },
+  {
+   "assert": "[...document.querySelectorAll('[data-draw-width]')].map(b => b.textContent).join(' ') === 'Fin Moyen Épais'",
+   "label": "Fin / Moyen / Épais"
+  },
+  {
+   "realclick": "[data-draw-width=\"epais\"]"
+  },
+  {
+   "assert": "A.state.review.width === 'epais'",
+   "label": "épaisseur choisie"
+  },
+  {
+   "assert": "[...document.querySelectorAll('[data-draw-color]')].map(b => b.dataset.drawColor).includes('#2322E0')",
+   "label": "le bleu de la charte est toujours proposé"
+  },
+  {
+   "realclick": "[data-draw-color=\"#2322E0\"]"
+  },
+  {
+   "assert": "A.state.review.color === '#2322E0'",
+   "label": "couleur choisie"
+  },
+  {
+   "realclick": "[data-draw-tool=\"text\"]"
+  },
+  {
+   "realclick": {
+    "at": "(() => { const c = document.querySelector('#review-canvas'), r = c.getBoundingClientRect(); return { x: r.x + r.width * 0.14, y: r.y + r.height * 0.62 }; })()"
+   }
+  },
+  {
+   "waitFor": "(() => { const f = document.querySelector('#draw-text'); return f && !f.hidden && document.activeElement === f; })()",
+   "label": "le champ s'ouvre à l'endroit cliqué, prêt à taper"
+  },
+  {
+   "insert": "Recadre ici"
+  },
+  {
+   "press": "Enter"
+  },
+  {
+   "assert": "(() => { const s = A.state.review.strokes, f = document.querySelector('#draw-text'); return s.length === 2 && s[1].kind === 'text' && s[1].text === 'Recadre ici' && s[1].color === '#2322E0' && s[1].width === 'epais' && f.hidden; })()",
+   "label": "Entrée pose le texte, dans la couleur et l'épaisseur choisies"
+  },
+  {
+   "realclick": {
+    "at": "(() => { const c = document.querySelector('#review-canvas'), r = c.getBoundingClientRect(); return { x: r.x + r.width * 0.55, y: r.y + r.height * 0.82 }; })()"
+   }
+  },
+  {
+   "waitFor": "!document.querySelector('#draw-text').hidden",
+   "label": "deuxième champ ouvert"
+  },
+  {
+   "insert": "à jeter"
+  },
+  {
+   "press": "Escape"
+  },
+  {
+   "assert": "A.state.review.strokes.length === 2 && document.querySelector('#draw-text').hidden",
+   "label": "Échap annule la saisie, sans rien poser"
+  },
+  {
+   "realclick": "[data-draw-tool=\"circle\"]"
+  },
+  {
+   "drag": {
+    "sel": "#review-canvas",
+    "dx": 110,
+    "dy": 95,
+    "fx": 0.45,
+    "fy": 0.2
+   }
+  },
+  {
+   "assert": "(() => { const s = A.state.review.strokes; return s.length === 3 && s[2].kind === 'circle'; })()",
+   "label": "un cercle par-dessus"
+  },
+  {
+   "eval": "window.__montageAvant = JSON.stringify(A.state.project.montage)"
+  },
+  {
+   "press": "Meta+Z"
+  },
+  {
+   "assert": "A.state.review.strokes.length === 2 && A.state.review.strokes[1].kind === 'text'",
+   "label": "⌘Z retire le cercle"
+  },
+  {
+   "press": "Ctrl+Z"
+  },
+  {
+   "assert": "A.state.review.strokes.length === 1 && A.state.review.strokes[0].kind === 'free'",
+   "label": "Ctrl+Z retire le texte : il ne reste que le trait"
+  },
+  {
+   "assert": "JSON.stringify(A.state.project.montage) === window.__montageAvant",
+   "label": "le montage n'a pas bougé : ⌘Z servait au dessin"
+  },
+  {
+   "realclick": "[data-draw-attach]"
+  },
+  {
+   "waitFor": "A.state.review.images.length === 1 && !A.state.review.drawing",
+   "label": "capture jointe"
+  },
+  {
+   "assert": "(() => new Promise(res => { const img = new Image(); img.onerror = () => res('image illisible'); img.onload = () => { const v = document.querySelector('#review-video'); const c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight; const x = c.getContext('2d'); x.drawImage(img, 0, 0); const d = x.getImageData(0, 0, c.width, c.height).data; let bleu = 0; for (let i = 0; i < d.length; i += 4) if (d[i] < 80 && d[i + 1] < 80 && d[i + 2] > 180) bleu++; const taille = c.width === v.videoWidth && c.height === v.videoHeight; res(taille && bleu === 0 ? true : { png: [c.width, c.height], video: [v.videoWidth, v.videoHeight], bleu }); }; img.src = A.state.review.images[0]; }))()",
+   "label": "capture à la résolution de la vidéo, sans le texte annulé"
+  },
+  {
+   "realclick": "[data-review-draw]"
+  },
+  {
+   "waitFor": "A.state.review.drawing && A.state.review.strokes.length === 0",
+   "label": "nouvelle toile"
+  },
+  {
+   "assert": "A.state.review.width === 'epais' && A.state.review.color === '#2322E0' && A.state.review.tool === 'free'",
+   "label": "l'épaisseur et la couleur sont gardées, l'outil repart au feutre"
+  },
+  {
+   "realclick": "[data-draw-color=\"#e9a84b\"]"
+  },
+  {
+   "drag": {
+    "sel": "#review-canvas",
+    "dx": 120,
+    "dy": 60,
+    "fx": 0.2,
+    "fy": 0.35
+   }
+  },
+  {
+   "realclick": "[data-draw-tool=\"square\"]"
+  },
+  {
+   "drag": {
+    "sel": "#review-canvas",
+    "dx": 100,
+    "dy": 80,
+    "fx": 0.5,
+    "fy": 0.15
+   }
+  },
+  {
+   "realclick": "[data-draw-color=\"#2322E0\"]"
+  },
+  {
+   "realclick": "[data-draw-tool=\"text\"]"
+  },
+  {
+   "realclick": {
+    "at": "(() => { const c = document.querySelector('#review-canvas'), r = c.getBoundingClientRect(); return { x: r.x + r.width * 0.1, y: r.y + r.height * 0.7 }; })()"
+   }
+  },
+  {
+   "waitFor": "!document.querySelector('#draw-text').hidden",
+   "label": "champ texte du deuxième tour"
+  },
+  {
+   "insert": "Recadre ici"
+  },
+  {
+   "press": "Enter"
+  },
+  {
+   "assert": "A.state.review.strokes.length === 3 && A.state.review.strokes.map(s => s.kind).join(' ') === 'free square text'",
+   "label": "trait, forme et texte sur la même image"
+  },
+  {
+   "shot": "barre-outils"
+  },
+  {
+   "realclick": "[data-draw-attach]"
+  },
+  {
+   "waitFor": "A.state.review.images.length === 2",
+   "label": "deuxième capture jointe"
+  },
+  {
+   "save": "capture-jointe",
+   "from": "A.state.review.images[1]"
+  },
+  {
+   "assert": "(() => new Promise(res => { const img = new Image(); img.onerror = () => res('image illisible'); img.onload = () => { const v = document.querySelector('#review-video'); const c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight; const x = c.getContext('2d'); x.drawImage(img, 0, 0); const d = x.getImageData(0, 0, c.width, c.height).data; let bleu = 0; for (let i = 0; i < d.length; i += 4) if (d[i] < 80 && d[i + 1] < 80 && d[i + 2] > 180) bleu++; const taille = c.width === v.videoWidth && c.height === v.videoHeight; res(taille && bleu > 200 ? true : { png: [c.width, c.height], video: [v.videoWidth, v.videoHeight], bleu }); }; img.src = A.state.review.images[1]; }))()",
+   "label": "le texte figure bien dans le PNG, à la résolution de la vidéo"
+  },
+  {
+   "realclick": "#composer-text"
+  },
+  {
+   "insert": "Le cadre coupe mon visage : recadre sur ce passage."
+  },
+  {
+   "realclick": "[data-composer-add]"
+  },
+  {
+   "waitFor": "A.state.review.retours.length === 1 && A.state.review.retours[0].images.length === 2",
+   "timeout": 30000,
+   "label": "retour enregistré avec ses deux captures"
+  },
+  {
+   "assert": "fetch('/api/projects/' + A.state.project.id + '/retours?version_id=' + A.state.review.versionId).then(r => r.json()).then(d => d.retours.length === 1 && d.retours[0].images.length === 2 && d.retours[0].images.every(p => p.startsWith('images/')))",
+   "label": "les PNG sont écrits dans le projet"
+  },
+  {
+   "assert": "![...document.querySelectorAll('.toast.error')].length",
+   "label": "aucun toast d'erreur"
+  },
+  {
+   "shot": "retour"
+  }
+ ]
+}

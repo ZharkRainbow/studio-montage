@@ -1,0 +1,36 @@
+{
+  "name": "rendu",
+  "path": "/?qa=1#/rendus",
+  "timeout": 240000,
+  "steps": [
+    {"viewport": [1512, 950]},
+    {"waitFor": "document.querySelector('.rendu-groupe')", "timeout": 10000, "label": "la page Rendus est chargée"},
+    {"assert": "[...document.querySelectorAll('.rendu-groupe h2')].map(h => h.textContent).join('|') === 'En cours|En attente|Terminées|Échecs et annulations'", "label": "les quatre états sont séparés"},
+    {"assert": "document.querySelector('#rendu-banniere').hidden", "label": "sans tâche, pas de bandeau"},
+
+    {"eval": "fetch('/api/projects/' + A.state.projects.find(p => p.name === 'Rendu de bout en bout').id + '/jobs', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({type: 'relecture'})}).then(r => r.json())"},
+    {"waitFor": "document.querySelector('.rendu-row.r-running')", "timeout": 30000, "label": "le rendu tourne pour de vrai"},
+    {"assert": "Boolean(document.querySelector('.rendu-row.r-running .rendu-barre'))", "label": "la progression s'affiche"},
+    {"assert": "!document.querySelector('#rendu-banniere').hidden && document.querySelector('#rendu-banniere').textContent.includes('Un rendu est en cours')", "label": "le bandeau « rendu en cours » est levé"},
+    {"shot": "rendu-en-cours"},
+
+    {"eval": "location.hash = '#/'"},
+    {"waitFor": "!document.querySelector('#home-view').hidden && !document.querySelector('#rendu-banniere').hidden", "timeout": 8000, "label": "le bandeau suit sur l'accueil"},
+    {"shot": "rendu-bandeau-accueil"},
+    {"eval": "location.hash = '#/rendus'"},
+
+    {"waitFor": "[...document.querySelectorAll('.rendu-groupe')].find(s => s.querySelector('h2').textContent === 'Terminées')?.querySelector('.rendu-row.r-succeeded')", "timeout": 180000, "label": "le rendu arrive dans Terminées"},
+    {"shot": "rendu-termine"},
+    {"assert": "fetch('/api/projects/' + A.state.projects.find(p => p.name === 'Rendu de bout en bout').id).then(r => r.json()).then(d => (d.project || d).versions.length === 1)", "label": "une version est née du rendu"},
+    {"assert": "fetch('/api/projects/' + A.state.projects.find(p => p.name === 'Rendu de bout en bout').id).then(r => r.json()).then(d => { const v = ((d.project || d).versions)[0]; return v.duration > 0 && v.duration < 6; })", "label": "la version ne dure que les morceaux gardés"},
+
+    {"assert": "fetch('/api/jobs').then(r => r.json()).then(d => d.jobs.some(j => j.type === 'words'))", "label": "le studio enchaîne tout seul la transcription du rush"},
+    {"waitFor": "fetch('/api/jobs').then(r => r.json()).then(d => d.jobs.every(j => !['queued', 'running'].includes(j.state)))", "timeout": 300000, "label": "la vraie transcription whisper va au bout"},
+    {"assert": "fetch('/api/jobs').then(r => r.json()).then(d => d.jobs.every(j => j.state === 'succeeded'))", "label": "aucune tâche n'a échoué"},
+    {"assert": "fetch('/api/projects/' + A.state.projects.find(p => p.name === 'Rendu de bout en bout').id).then(r => r.json()).then(d => { const p = d.project || d; return p.source_transcript_state === 'ready' && p.source_transcript.length >= 3 && p.source_transcript.every(c => c.text && c.end >= c.start); })", "label": "le rush transcrit rend de vrais mots horodatés"},
+    {"waitFor": "document.querySelector('#rendu-banniere').hidden", "timeout": 10000, "label": "le bandeau retombe quand plus rien ne tourne"},
+    {"assert": "[...document.querySelectorAll('.rendu-groupe')].find(s => s.querySelector('h2').textContent === 'En cours').querySelector('.rendu-vide').textContent === 'Rien ne tourne en ce moment.'", "label": "plus rien en cours"},
+    {"shot": "rendu-transcription-finie"},
+    {"assert": "![...document.querySelectorAll('.toast.error')].length", "label": "aucun toast d'erreur"}
+  ]
+}

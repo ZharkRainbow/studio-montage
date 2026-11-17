@@ -1,0 +1,50 @@
+{
+ "name": "chantier",
+ "path": "/?qa=1#/skills",
+ "steps": [
+  { "viewport": [1500, 1000] },
+  {
+   "waitFor": "document.querySelectorAll('.skill-card').length >= 6",
+   "timeout": 15000,
+   "label": "les skills du dépôt"
+  },
+  {
+   "assert": "[...document.querySelectorAll('.skill-card h2')].some(h => h.textContent.includes('atelier-studio'))",
+   "label": "le skill atelier-studio est là"
+  },
+  {
+   "assert": "[...document.querySelectorAll('.skill-actions a')].every(a => /\\/api\\/skills\\/[a-z0-9-]+\\.zip$/.test(a.getAttribute('href')))",
+   "label": "chaque skill a son zip"
+  },
+  {
+   "assert": "fetch('/api/skills/atelier-studio.zip').then(r => r.ok && r.headers.get('content-type') === 'application/zip')",
+   "label": "le zip se télécharge vraiment"
+  },
+  {
+   "assert": "fetch('/api/skills/../server.zip').then(r => !r.ok)",
+   "label": "un nom de skill tordu est refusé"
+  },
+  { "shot": "skills" },
+  { "realclick": { "sel": "[data-skill-copier]" } },
+  {
+   "waitFor": "[...document.querySelectorAll('.toast')].some(t => t.textContent.includes('Installation du skill'))",
+   "timeout": 5000,
+   "label": "la commande d'installation est copiée"
+  },
+  { "eval": "location.hash = '#/rendus'" },
+  {
+   "waitFor": "[...document.querySelectorAll('.rendu-groupe h2')].map(h => h.textContent).join('|') === 'En cours|En attente|Terminées|Échecs et annulations'",
+   "timeout": 10000,
+   "label": "les deux groupes de rendus"
+  },
+  {
+   "assert": "document.querySelector('#rendu-banniere').hidden",
+   "label": "aucune bannière quand rien ne tourne"
+  },
+  {
+   "assert": "![...document.querySelectorAll('.toast.error')].length",
+   "label": "aucun toast d'erreur"
+  },
+  { "shot": "rendus" }
+ ]
+}

@@ -1,0 +1,214 @@
+{
+ "name": "bibliotheque",
+ "path": "/?qa=1#/animations",
+ "timeout": 180000,
+ "steps": [
+  {
+   "viewport": [
+    1500,
+    1000
+   ]
+  },
+  {
+   "waitFor": "document.querySelectorAll('.an-card').length === 37",
+   "timeout": 20000,
+   "label": "les 37 animations"
+  },
+  {
+   "assert": "[...document.querySelectorAll('.side-group-head')].map(e => e.textContent).join('|') === 'Bibliothèque|Agents'",
+   "label": "les groupes du menu"
+  },
+  {
+   "assert": "Boolean(document.querySelector('#sidebar-foot [data-route=\"rendus\"]'))",
+   "label": "Rendus est au pied du menu"
+  },
+  {
+   "realclick": {
+    "sel": "[data-anim-category]",
+    "text": "Caméra"
+   }
+  },
+  {
+   "wait": 300
+  },
+  {
+   "assert": "A.state.animCategory === 'Caméra' && [...document.querySelectorAll('.an-card')].length > 0 && [...document.querySelectorAll('.an-body small')].every(s => s.textContent.includes('Caméra'))",
+   "label": "le filtre par catégorie tient"
+  },
+  {
+   "realclick": {
+    "sel": "[data-anim-category]",
+    "text": "Toutes"
+   }
+  },
+  {
+   "wait": 300
+  },
+  {
+   "eval": "(() => { const c = document.querySelector('#anim-search'); c.value = 'sous-titres'; c.dispatchEvent(new Event('input', { bubbles: true })); return true; })()"
+  },
+  {
+   "wait": 300
+  },
+  {
+   "assert": "document.querySelectorAll('.an-card').length > 0 && document.querySelectorAll('.an-card').length < 37",
+   "label": "la recherche réduit la grille"
+  },
+  {
+   "eval": "(() => { const c = document.querySelector('#anim-search'); c.value = ''; c.dispatchEvent(new Event('input', { bubbles: true })); return true; })()"
+  },
+  {
+   "wait": 300
+  },
+  {
+   "assert": "[...document.querySelectorAll('.an-card video[data-apercu]')].every(v => !v.src)",
+   "label": "aucun aperçu ne se charge avant le survol"
+  },
+  {
+   "realhover": "[data-animation=\"checklist\"] .an-thumb"
+  },
+  {
+   "waitFor": "(() => { const v = document.querySelector('[data-animation=\"checklist\"] video'); return v && v.src.endsWith('apercu.mp4'); })()",
+   "timeout": 8000,
+   "label": "le survol charge l'aperçu de la carte"
+  },
+  {
+   "waitFor": "(() => { const v = document.querySelector('[data-animation=\"checklist\"] video'); return v && !v.paused && v.currentTime > 0; })()",
+   "timeout": 10000,
+   "label": "et l'aperçu tourne vraiment"
+  },
+  {
+   "shot": "survol-apercu"
+  },
+  {
+   "realhover": "#anim-search"
+  },
+  {
+   "waitFor": "(() => { const v = document.querySelector('[data-animation=\"checklist\"] video'); return v && v.paused && v.currentTime === 0; })()",
+   "timeout": 8000,
+   "label": "la souris partie, l'aperçu s'arrête et revient au début"
+  },
+  {
+   "realclick": "[data-animation=\"titre-bandeau-bleu\"]"
+  },
+  {
+   "waitFor": "document.querySelector('.an-detail')",
+   "timeout": 8000,
+   "label": "le panneau de détail s'ouvre"
+  },
+  {
+   "assert": "document.querySelector('.an-detail h2').textContent.length > 3 && Boolean(document.querySelector('.an-detail video'))",
+   "label": "le détail montre l'aperçu"
+  },
+  {
+   "waitFor": "document.querySelector('[data-animation-preset]')",
+   "timeout": 10000,
+   "label": "« Ajouter à un preset » liste les presets"
+  },
+  {
+   "assert": "document.querySelectorAll('[data-animation-preset] option').length === 4",
+   "label": "trois presets plus l'invite"
+  },
+  {
+   "shot": "animations"
+  },
+  {
+   "eval": "document.querySelector('.an-detail').scrollIntoView({block:'start'})"
+  },
+  {
+   "wait": 200
+  },
+  {
+   "realclick": "[data-animation-close]"
+  },
+  {
+   "wait": 300
+  },
+  {
+   "assert": "!document.querySelector('.an-detail')",
+   "label": "le panneau se referme"
+  },
+  {
+   "eval": "(location.hash = '#/presets', true)"
+  },
+  {
+   "waitFor": "document.querySelectorAll('.pr-card').length === 3",
+   "timeout": 15000,
+   "label": "les trois presets"
+  },
+  {
+   "assert": "document.querySelectorAll('.pr-sample-card').length === 3 && document.querySelectorAll('.pr-dots i').length >= 12",
+   "label": "rendu d'exemple et pastilles"
+  },
+  {
+   "assert": "[...document.querySelectorAll('.pr-card .status')].some(s => s.textContent === 'Mis en avant')",
+   "label": "le preset mis en avant est marqué"
+  },
+  {
+   "realclick": "[data-preset-toggle=\"preset-exemple\"]"
+  },
+  {
+   "wait": 400
+  },
+  {
+   "assert": "document.querySelector('.pr-card.open .pr-values') && document.querySelectorAll('.pr-card.open .pr-values section').length === 8",
+   "label": "les sept blocs plus les animations"
+  },
+  {
+   "assert": "[...document.querySelectorAll('.pr-card.open .pr-null')].some(e => e.textContent.includes('non renseignée'))",
+   "label": "une valeur absente se dit absente"
+  },
+  {
+   "assert": "document.querySelectorAll('.pr-card.open .pr-anims li').length === 3",
+   "label": "les trois animations par défaut"
+  },
+  {
+   "shot": "presets"
+  },
+  {
+   "eval": "(location.hash = '#/projets', true)"
+  },
+  {
+   "waitFor": "document.querySelector('[data-card-versions]')",
+   "timeout": 15000,
+   "label": "la carte de projet"
+  },
+  {
+   "assert": "document.querySelector('.p-badges .s-version').textContent === 'V3'",
+   "label": "le badge dit la version active"
+  },
+  {
+   "realclick": "[data-card-versions]"
+  },
+  {
+   "wait": 400
+  },
+  {
+   "assert": "document.querySelectorAll('.p-versions li').length === 3 && document.querySelector('.p-versions li span').textContent.length > 5",
+   "label": "V1 à V3 avec leurs dates"
+  },
+  {
+   "assert": "Boolean(document.querySelector('[data-card-folder]'))",
+   "label": "« Ranger dans » est là"
+  },
+  {
+   "shot": "cartes"
+  },
+  {
+   "realclick": "[data-card-version=\"v1\"]"
+  },
+  {
+   "waitFor": "A.state.project && A.state.review.versionId === 'v1'",
+   "timeout": 20000,
+   "label": "le clic ouvre le projet sur V1"
+  },
+  {
+   "assert": "A.state.step === 'review'",
+   "label": "et il l'ouvre en Relecture"
+  },
+  {
+   "assert": "![...document.querySelectorAll('.toast.error')].length",
+   "label": "aucun toast d'erreur"
+  }
+ ]
+}

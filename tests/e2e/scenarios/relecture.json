@@ -1,0 +1,280 @@
+{
+ "name": "relecture",
+ "path": "/?qa=1#/projets",
+ "timeout": 480000,
+ "steps": [
+  {
+   "viewport": [
+    1600,
+    1000
+   ]
+  },
+  {
+   "waitFor": "document.querySelector('[data-open-project]')",
+   "timeout": 15000,
+   "label": "bibliothèque"
+  },
+  {
+   "realclick": "[data-open-project]"
+  },
+  {
+   "waitFor": "A.state.project && document.querySelector('#steps button')",
+   "timeout": 20000,
+   "label": "projet ouvert"
+  },
+  {
+   "realclick": {
+    "sel": "#steps button",
+    "text": "Relecture"
+   }
+  },
+  {
+   "waitFor": "document.querySelectorAll('#review-words [data-word]').length > 50",
+   "timeout": 30000,
+   "label": "transcript mot à mot affiché"
+  },
+  {
+   "waitFor": "document.querySelector('#review-video').readyState >= 2",
+   "timeout": 30000,
+   "label": "vidéo prête"
+  },
+  {
+   "assert": "['Dessiner', '1×', 'Couper le son'].every(mot => document.querySelector('.review-transport').textContent.includes(mot) || [...document.querySelectorAll('.review-transport [aria-label], .review-transport [title]')].some(b => (b.getAttribute('aria-label') || b.title).includes(mot)))",
+   "label": "transport Dessiner / vitesse / son"
+  },
+  {
+   "assert": "(() => { const body = document.querySelector('#stage-body'), video = document.querySelector('#review-video'); return video.getBoundingClientRect().height <= body.clientHeight + 1 && body.scrollHeight <= body.clientHeight + 1; })()",
+   "label": "le lecteur tient dans la scène, sans défilement"
+  },
+  {
+   "assert": "[...document.querySelectorAll('[data-review-skip]')].map(b => b.dataset.reviewSkip).join(' ') === '-5 5'",
+   "label": "les deux flèches de 5 s sont là"
+  },
+  {
+   "realclick": "[data-review-skip=\"5\"]"
+  },
+  {
+   "waitFor": "A.state.review.time > 4.5",
+   "label": "+5 s avance la lecture"
+  },
+  {
+   "realclick": "[data-review-skip=\"-5\"]"
+  },
+  {
+   "waitFor": "A.state.review.time < 0.5",
+   "label": "−5 s revient en arrière, sans passer sous zéro"
+  },
+  {
+   "drag": {
+    "at": "(() => { const e = document.querySelector('#review-words [data-word=\"18\"]'); e.scrollIntoView({ block: 'center' }); const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; })()",
+    "to": "(() => { const e = document.querySelector('#review-words [data-word=\"26\"]'); e.scrollIntoView({ block: 'center' }); const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; })()"
+   }
+  },
+  {
+   "assert": "Boolean(A.state.review.selection) && A.state.review.selection.quote.split(' ').length >= 5",
+   "label": "une plage de mots choisie"
+  },
+  {
+   "assert": "document.querySelector('#composer-time').textContent.trim().startsWith('De ')",
+   "label": "la saisie annonce la plage"
+  },
+  {
+   "realclick": "#composer-text"
+  },
+  {
+   "insert": "Ce passage traîne : resserre-le et garde la punchline."
+  },
+  {
+   "realclick": "[data-composer-add]"
+  },
+  {
+   "waitFor": "A.state.review.retours.length === 1 && A.state.review.retours[0].end > A.state.review.retours[0].start",
+   "timeout": 20000,
+   "label": "retour de plage enregistré"
+  },
+  {
+   "realclick": {
+    "sel": "#review-track",
+    "text": ""
+   }
+  },
+  {
+   "realclick": {
+    "sel": "[data-review-draw]",
+    "text": ""
+   }
+  },
+  {
+   "waitFor": "A.state.review.drawing && !document.querySelector('#review-canvas').hidden",
+   "label": "mode Dessiner"
+  },
+  {
+   "drag": {
+    "sel": "#review-canvas",
+    "dx": 90,
+    "dy": 70,
+    "fx": 0.3,
+    "fy": 0.3
+   }
+  },
+  {
+   "assert": "A.state.review.strokes.length === 1",
+   "label": "une forme tracée"
+  },
+  {
+   "realclick": "[data-draw-attach]"
+  },
+  {
+   "waitFor": "A.state.review.images.length === 1 && !A.state.review.drawing",
+   "label": "dessin joint au retour"
+  },
+  {
+   "realclick": "#composer-text"
+  },
+  {
+   "insert": "Recadre ici : mon visage sort du cadre à droite."
+  },
+  {
+   "realclick": "[data-composer-add]"
+  },
+  {
+   "waitFor": "A.state.review.retours.length === 2 && A.state.review.retours[1].images.length === 1",
+   "timeout": 30000,
+   "label": "retour avec capture enregistré"
+  },
+  {
+   "assert": "fetch('/api/projects/' + A.state.project.id + '/retours?version_id=' + A.state.review.versionId).then(r => r.json()).then(d => d.retours.length === 2 && d.retours[1].images[0].startsWith('images/'))",
+   "label": "retours/v1.json écrit dans le projet"
+  },
+  {
+   "realclick": "[data-copy-consigne]"
+  },
+  {
+   "waitFor": "document.querySelector('#consigne-dialog[open]')",
+   "timeout": 20000,
+   "label": "fenêtre Consigne pour Claude"
+  },
+  {
+   "assert": "document.querySelector('#consigne-count').textContent.startsWith('2 retours ouverts.')",
+   "label": "le compte des retours ouverts"
+  },
+  {
+   "assert": "(() => { const texte = document.querySelector('#consigne-text').value; return texte.startsWith('/montage-reels applique ces retours au reel ') && texte.includes('2 changements à appliquer :') && /1\\. COMMENTAIRE de \\d\\d:\\d\\d\\.\\d\\d à \\d\\d:\\d\\d\\.\\d\\d \\(REEL [\\d.]+ s → [\\d.]+ s, [\\d.]+ s\\) · SOURCE .+ \\[id \\w+\\]/.test(texte) && /2\\. COMMENTAIRE à \\d\\d:\\d\\d\\.\\d\\d \\(REEL [\\d.]+ s\\) · SOURCE .+ \\[id \\w+\\]/.test(texte) && texte.includes('   Mots : \"') && texte.includes('   Demande : ') && texte.includes('   Captures : '); })()",
+   "label": "le texte suit le format du brief"
+  },
+  {
+   "assert": "document.querySelector('#consigne-notice').hidden",
+   "label": "aucun avertissement : le rendu correspond au montage"
+  },
+  {
+   "assert": "(() => { const texte = document.querySelector('#consigne-text').value; const lignes = [...texte.matchAll(/REEL ([\\d.]+) s[^\\n]*SOURCE ([\\d.]+) s/g)]; return lignes.length === 2 && lignes.every(l => Math.abs(Number(l[2]) - Number(l[1])) <= 0.05); })()",
+   "label": "montage intact : chaque temps SOURCE vaut son temps REEL"
+  },
+  {
+   "assert": "!document.querySelector('#consigne-resolve').checked",
+   "label": "la case Résolus part décochée"
+  },
+  {
+   "shot": "consigne"
+  },
+  {
+   "press": "Escape"
+  },
+  {
+   "waitFor": "!document.querySelector('#consigne-dialog').open",
+   "label": "fenêtre refermée sans copier"
+  },
+  {
+   "realclick": {
+    "sel": "#steps button",
+    "text": "Montage"
+   }
+  },
+  {
+   "waitFor": "document.querySelector('[data-remove-silences]')",
+   "timeout": 20000,
+   "label": "étape Montage"
+  },
+  {
+   "assert": "(() => { const body = document.querySelector('#stage-body'), video = document.querySelector('#montage-video'); if (!video) return 'pas de lecteur'; return video.getBoundingClientRect().bottom <= body.getBoundingClientRect().bottom + 1 && body.scrollHeight <= body.clientHeight + 1; })()",
+   "label": "le 9:16 du montage tient dans la scène, sans défilement"
+  },
+  {
+   "realclick": "[data-remove-silences]"
+  },
+  {
+   "waitFor": "A.state.project.montage.segments.length > 1",
+   "timeout": 120000,
+   "label": "blancs supprimés"
+  },
+  {
+   "assert": "A.state.project.montage.segments.reduce((t, s) => t + s.end - s.start, 0) < 60",
+   "label": "le reel est plus court que le MP4 relu"
+  },
+  {
+   "waitFor": "P().then(p => p.montage.segments.reduce((t, s) => t + s.end - s.start, 0) < 60)",
+   "timeout": 20000,
+   "label": "le serveur a bien enregistré le montage coupé"
+  },
+  {
+   "realclick": {
+    "sel": "#steps button",
+    "text": "Relecture"
+   }
+  },
+  {
+   "waitFor": "document.querySelector('#review-video').readyState >= 2 && A.state.review.retours.length === 2",
+   "timeout": 30000,
+   "label": "retour à la relecture, les deux retours sont toujours là"
+  },
+  {
+   "realclick": "[data-copy-consigne]"
+  },
+  {
+   "waitFor": "document.querySelector('#consigne-dialog[open]')",
+   "timeout": 20000,
+   "label": "fenêtre Consigne pour Claude, après la coupe"
+  },
+  {
+   "assert": "(() => { const n = document.querySelector('#consigne-notice'); return !n.hidden && n.textContent.startsWith('Temps SOURCE indisponibles : les morceaux gardés durent '); })()",
+   "label": "la fenêtre dit pourquoi les temps SOURCE manquent"
+  },
+  {
+   "assert": "(() => { const texte = document.querySelector('#consigne-text').value; return texte.startsWith('/montage-reels applique ces retours au reel ') && texte.includes('2 changements à appliquer :') && /1\\. COMMENTAIRE de \\d\\d:\\d\\d\\.\\d\\d à \\d\\d:\\d\\d\\.\\d\\d \\(REEL [\\d.]+ s → [\\d.]+ s, [\\d.]+ s\\) · SOURCE .+ \\[id \\w+\\]/.test(texte) && /2\\. COMMENTAIRE à \\d\\d:\\d\\d\\.\\d\\d \\(REEL [\\d.]+ s\\) · SOURCE .+ \\[id \\w+\\]/.test(texte) && texte.includes('   Mots : \"') && texte.includes('   Demande : ') && texte.includes('   Captures : '); })()",
+   "label": "le format du brief tient aussi sans temps SOURCE"
+  },
+  {
+   "assert": "(() => { const texte = document.querySelector('#consigne-text').value; return texte.includes('· SOURCE indisponible [id') && !/SOURCE [\\d.]+ s/.test(texte) && texte.includes('Temps SOURCE indisponibles'); })()",
+   "label": "aucun temps SOURCE inventé"
+  },
+  {
+   "shot": "consigne-sans-source"
+  },
+  {
+   "realclick": "#consigne-resolve"
+  },
+  {
+   "waitFor": "document.querySelector('#consigne-resolve').checked",
+   "label": "case Résolus cochée à la main"
+  },
+  {
+   "realclick": "[data-consigne-copy]"
+  },
+  {
+   "waitFor": "!document.querySelector('#consigne-dialog').open && A.state.review.counts.open === 0",
+   "timeout": 20000,
+   "label": "copie faite, retours marqués résolus"
+  },
+  {
+   "assert": "(() => { const b = document.querySelector('[data-copy-consigne]'); return b.disabled && !b.querySelector('.pill-count') && !!b.querySelector('svg'); })()",
+   "label": "le bouton retrouve son icône et perd sa pastille"
+  },
+  {
+   "assert": "![...document.querySelectorAll('.toast.error')].length",
+   "label": "aucun toast d'erreur"
+  },
+  {
+   "shot": "relecture"
+  }
+ ]
+}

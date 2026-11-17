@@ -1,0 +1,392 @@
+{
+ "name": "zoom",
+ "path": "/?qa=1#/projets",
+ "timeout": 300000,
+ "steps": [
+  {
+   "viewport": [
+    1600,
+    1000
+   ]
+  },
+  {
+   "waitFor": "document.querySelector('[data-open-project]')",
+   "timeout": 15000,
+   "label": "bibliothèque"
+  },
+  {
+   "realclick": "[data-open-project]"
+  },
+  {
+   "waitFor": "A.state.project && document.querySelector('#steps button')",
+   "timeout": 20000,
+   "label": "projet ouvert"
+  },
+  {
+   "realclick": {
+    "sel": "#steps button",
+    "text": "Montage"
+   }
+  },
+  {
+   "waitFor": "document.querySelector('[data-zoom-slider]')",
+   "timeout": 20000,
+   "label": "la barre de zoom est là"
+  },
+  {
+   "realclick": "[data-fit-view]"
+  },
+  {
+   "wait": 400
+  },
+  {
+   "assert": "A.state.trim.start === 0 && document.querySelector('#zoom-percent').textContent === '100 %'",
+   "label": "« Tout voir » affiche 100 %"
+  },
+  {
+   "assert": "document.querySelector('#trim-mini').hidden && Number(document.querySelector('[data-zoom-slider]').value) === 0",
+   "label": "pas zoomé : mini-barre cachée, curseur au départ"
+  },
+  {
+   "assert": "document.querySelectorAll('#trim-ruler i').length >= 3 && /^\\d\\d:\\d\\d/.test(document.querySelector('#trim-ruler b').textContent)",
+   "label": "la règle montre des mm:ss"
+  },
+  {
+   "realclick": "[data-remove-silences]"
+  },
+  {
+   "waitFor": "A.state.project.montage.segments.length > 1",
+   "timeout": 120000,
+   "label": "blancs supprimés"
+  },
+  {
+   "realclick": "[data-fit-view]"
+  },
+  {
+   "wait": 400
+  },
+  {
+   "eval": "(window.__tout = A.state.trim.end - A.state.trim.start, true)"
+  },
+  {
+   "realclick": "[data-zoom-step=\"in\"]"
+  },
+  {
+   "waitFor": "A.state.trim.end - A.state.trim.start < window.__tout - 0.5",
+   "timeout": 6000,
+   "label": "la loupe + zoome"
+  },
+  {
+   "assert": "Number(document.querySelector('#zoom-percent').textContent.replace(/\\D/g, '')) > 140",
+   "label": "le pourcentage suit la loupe"
+  },
+  {
+   "assert": "!document.querySelector('#trim-mini').hidden && document.querySelector('#mini-cuts').children.length > 0",
+   "label": "la mini-barre apparaît avec ses coupes"
+  },
+  {
+   "assert": "Number(document.querySelector('[data-zoom-slider]').value) > 0",
+   "label": "le curseur suit le zoom"
+  },
+  {
+   "eval": "(() => { const s = document.querySelector('[data-zoom-slider]'); window.__requetes = A.state.waveCache.size; s.value = String(Math.round(Number(s.max) * 0.6)); s.dispatchEvent(new Event('input', { bubbles: true })); return s.value; })()"
+  },
+  {
+   "wait": 60
+  },
+  {
+   "assert": "A.state.trim.end - A.state.trim.start < window.__tout / 4",
+   "label": "le curseur serre la fenêtre"
+  },
+  {
+   "eval": "(() => { const s = document.querySelector('[data-zoom-slider]'); s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()"
+  },
+  {
+   "wait": 500
+  },
+  {
+   "assert": "Math.abs(Number(document.querySelector('#zoom-percent').textContent.replace(/\\D/g, '')) - Math.round(100 * window.__tout / (A.state.trim.end - A.state.trim.start))) <= 2",
+   "label": "le pourcentage dit la vraie fenêtre"
+  },
+  {
+   "assert": "document.querySelectorAll('#trim-ruler i').length >= 3",
+   "label": "la règle s’est resserrée sans disparaître"
+  },
+  {
+   "shot": "barre-zoom"
+  },
+  {
+   "realclick": {
+    "at": "(() => { const r = document.querySelector('#trim-ruler').getBoundingClientRect(); return { x: r.x + r.width * 0.75, y: r.y + r.height / 2 }; })()"
+   }
+  },
+  {
+   "wait": 300
+  },
+  {
+   "assert": "Math.abs(A.state._trim.video.currentTime - (A.state.trim.start + (A.state.trim.end - A.state.trim.start) * 0.75)) < 1",
+   "label": "un clic sur la règle place la tête"
+  },
+  {
+   "eval": "(window.__avant = A.state.trim.end - A.state.trim.start, true)"
+  },
+  {
+   "press": "-"
+  },
+  {
+   "wait": 300
+  },
+  {
+   "assert": "A.state.trim.end - A.state.trim.start > window.__avant + 0.2",
+   "label": "« − » dézoome"
+  },
+  {
+   "press": "="
+  },
+  {
+   "wait": 300
+  },
+  {
+   "assert": "Math.abs(A.state.trim.end - A.state.trim.start - window.__avant) < 0.2",
+   "label": "« = » rezoome d’autant"
+  },
+  {
+   "press": "Shift+Z"
+  },
+  {
+   "wait": 400
+  },
+  {
+   "assert": "A.state.trim.start === 0 && document.querySelector('#trim-mini').hidden",
+   "label": "Maj+Z remontre tout le fichier"
+  },
+  {
+   "realclick": "[data-zoom-step=\"in\"]"
+  },
+  {
+   "realclick": "[data-zoom-step=\"in\"]"
+  },
+  {
+   "wait": 400
+  },
+  {
+   "eval": "(window.__depart = A.state.trim.start, true)"
+  },
+  {
+   "realclick": {
+    "at": "(() => { const m = document.querySelector('#trim-mini').getBoundingClientRect(), f = document.querySelector('#mini-frame').getBoundingClientRect(); const part = f.x - m.x > m.width * 0.4 ? 0.08 : 0.92; return { x: m.x + m.width * part, y: m.y + m.height / 2 }; })()"
+   }
+  },
+  {
+   "wait": 500
+  },
+  {
+   "assert": "Math.abs(A.state.trim.start - window.__depart) > 0.5",
+   "label": "un clic dans la mini-barre déplace la vue"
+  },
+  {
+   "realclick": "[data-fit-view]"
+  },
+  {
+   "wait": 400
+  },
+  {
+   "eval": "(window.__coupes = A.state.project.montage.blanks.filter(b => b.cut !== false).length, true)"
+  },
+  {
+   "drag": {
+    "at": "(() => { const r = document.querySelector('#trim-track').getBoundingClientRect(); return { x: r.x + r.width * 0.42, y: r.y + r.height / 2 }; })()",
+    "dx": 120,
+    "steps": 8,
+    "shift": true
+   }
+  },
+  {
+   "wait": 300
+  },
+  {
+   "assert": "A.state.trimSelection && A.state.trimSelection.end > A.state.trimSelection.start + 0.5",
+   "label": "Maj + glisser dessine une sélection"
+  },
+  {
+   "assert": "!document.querySelector('#trim-select').hidden && /\\d,\\d s/.test(document.querySelector('#trim-select b').textContent)",
+   "label": "la zone ambre affiche sa durée"
+  },
+  {
+   "assert": "Boolean(document.querySelector('[data-cut-selection]'))",
+   "label": "« Couper la sélection » apparaît"
+  },
+  {
+   "shot": "selection"
+  },
+  {
+   "press": "Delete"
+  },
+  {
+   "waitFor": "A.state.project.montage.blanks.filter(b => b.cut !== false).length === window.__coupes + 1",
+   "timeout": 8000,
+   "label": "Suppr coupe la sélection"
+  },
+  {
+   "assert": "A.state.trimSelection === null && !document.querySelector('[data-cut-selection]')",
+   "label": "la sélection est consommée"
+  },
+  {
+   "assert": "A.state.project.montage.blanks.some(b => b.manual) && A.state.project.montage.segments.every(s => s.end > s.start)",
+   "label": "la coupe est à la main, les morceaux tiennent"
+  },
+  {
+   "assert": "[...document.querySelectorAll('.toast')].some(t => t.textContent.includes('Coupe ajoutée'))",
+   "label": "le toast le dit"
+  },
+  {
+   "realclick": {
+    "sel": "[data-toast-action]",
+    "text": "Annuler"
+   }
+  },
+  {
+   "waitFor": "A.state.project.montage.blanks.filter(b => b.cut !== false).length === window.__coupes",
+   "timeout": 8000,
+   "label": "Annuler revient en arrière"
+  },
+  {
+   "drag": {
+    "at": "(() => { const r = document.querySelector('#trim-track').getBoundingClientRect(); return { x: r.x + r.width * 0.3, y: r.y + r.height / 2 }; })()",
+    "dx": 90,
+    "steps": 6,
+    "shift": true
+   }
+  },
+  {
+   "wait": 200
+  },
+  {
+   "assert": "Boolean(A.state.trimSelection)",
+   "label": "une deuxième sélection"
+  },
+  {
+   "press": "Escape"
+  },
+  {
+   "wait": 200
+  },
+  {
+   "assert": "A.state.trimSelection === null && document.querySelector('#trim-select').hidden",
+   "label": "Échap l’efface"
+  },
+  {
+   "drag": {
+    "at": "(() => { const r = document.querySelector('#trim-track').getBoundingClientRect(); return { x: r.x + r.width * 0.3, y: r.y + r.height / 2 }; })()",
+    "dx": 90,
+    "steps": 6,
+    "shift": true
+   }
+  },
+  {
+   "wait": 200
+  },
+  {
+   "realclick": {
+    "at": "(() => { const r = document.querySelector('#trim-track').getBoundingClientRect(); return { x: r.x + r.width * 0.12, y: r.y + r.height / 2 }; })()"
+   }
+  },
+  {
+   "wait": 300
+  },
+  {
+   "assert": "A.state.trimSelection === null",
+   "label": "un clic ailleurs efface la sélection"
+  },
+  {
+   "assert": "document.querySelector('[data-trim-speed]').textContent.trim() === '1×' && A.state._trim.video.playbackRate === 1",
+   "label": "on part de 1×"
+  },
+  {
+   "realclick": "[data-trim-speed]"
+  },
+  {
+   "wait": 200
+  },
+  {
+   "assert": "A.state.speed === 1.2 && document.querySelector('[data-trim-speed]').textContent.trim() === '1,2×'",
+   "label": "un clic passe à 1,2×"
+  },
+  {
+   "assert": "A.state._trim.video.playbackRate === 1.2 && A.state._trim.video.preservesPitch === true",
+   "label": "le son suit, à hauteur normale"
+  },
+  {
+   "realclick": "[data-trim-speed]"
+  },
+  {
+   "realclick": "[data-trim-speed]"
+  },
+  {
+   "wait": 200
+  },
+  {
+   "assert": "A.state.speed === 2 && localStorage.getItem('atelier:speed') === '2'",
+   "label": "1,5× puis 2×, et c’est gardé"
+  },
+  {
+   "shot": "vitesse"
+  },
+  {
+   "realclick": {
+    "sel": "#steps button",
+    "text": "Relecture"
+   }
+  },
+  {
+   "waitFor": "document.querySelector('[data-review-speed]')",
+   "timeout": 20000,
+   "label": "la Relecture est ouverte"
+  },
+  {
+   "wait": 600
+  },
+  {
+   "assert": "document.querySelector('[data-review-speed]').textContent.trim() === '2×'",
+   "label": "la Relecture reprend la vitesse du Montage"
+  },
+  {
+   "assert": "A.reviewController().video.playbackRate === 2 && A.reviewController().video.preservesPitch === true",
+   "label": "la vidéo relue va à 2×, à hauteur normale"
+  },
+  {
+   "realclick": "[data-review-speed]"
+  },
+  {
+   "wait": 300
+  },
+  {
+   "assert": "A.state.speed === 1 && document.querySelector('[data-review-speed]').textContent.trim() === '1×'",
+   "label": "le même cycle : 2× revient à 1×"
+  },
+  {
+   "realclick": {
+    "sel": "#steps button",
+    "text": "Montage"
+   }
+  },
+  {
+   "waitFor": "document.querySelector('[data-trim-speed]')",
+   "timeout": 20000
+  },
+  {
+   "wait": 600
+  },
+  {
+   "assert": "document.querySelector('[data-trim-speed]').textContent.trim() === '1×' && A.state._trim.video.playbackRate === 1",
+   "label": "de retour au Montage, la vitesse est la même"
+  },
+  {
+   "assert": "![...document.querySelectorAll('.toast.error')].length",
+   "label": "aucun toast d’erreur"
+  },
+  {
+   "shot": "zoom"
+  }
+ ]
+}

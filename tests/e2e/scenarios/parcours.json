@@ -1,0 +1,222 @@
+{
+ "name": "parcours",
+ "path": "/?qa=1#/",
+ "timeout": 240000,
+ "steps": [
+  {
+   "viewport": [
+    1500,
+    1000
+   ]
+  },
+  {
+   "waitFor": "document.querySelectorAll('.side-group-head').length === 2",
+   "timeout": 20000,
+   "label": "le menu est la"
+  },
+  {
+   "wait": 600
+  },
+  {
+   "shot": "01-menu"
+  },
+  {
+   "eval": "location.hash = '#/animations'"
+  },
+  {
+   "waitFor": "document.querySelectorAll('.an-card').length > 30",
+   "timeout": 20000,
+   "label": "la bibliotheque d'animations"
+  },
+  {
+   "wait": 500
+  },
+  {
+   "shot": "02-bibliotheque"
+  },
+  {
+   "realclick": {
+    "sel": ".an-card"
+   }
+  },
+  {
+   "waitFor": "Boolean(document.querySelector('.an-detail-body'))",
+   "timeout": 20000,
+   "label": "la fiche d'une animation"
+  },
+  {
+   "wait": 1200
+  },
+  {
+   "shot": "03-animation"
+  },
+  {
+   "eval": "location.hash = '#/presets'"
+  },
+  {
+   "waitFor": "document.querySelectorAll('[data-preset]').length > 0 || Boolean(document.querySelector('.lib-empty'))",
+   "timeout": 20000,
+   "label": "les presets"
+  },
+  {
+   "wait": 600
+  },
+  {
+   "shot": "04-presets"
+  },
+  {
+   "eval": "location.hash = '#/skills'"
+  },
+  {
+   "waitFor": "document.querySelectorAll('.skill-card').length > 0",
+   "timeout": 20000,
+   "label": "les skills"
+  },
+  {
+   "wait": 500
+  },
+  {
+   "shot": "05-skills"
+  },
+  {
+   "eval": "location.hash = '#/reglages'"
+  },
+  {
+   "waitFor": "document.querySelectorAll('.settings-toc [data-settings-jump]').length === 7",
+   "timeout": 20000,
+   "label": "le sommaire des reglages"
+  },
+  {
+   "wait": 800
+  },
+  {
+   "shot": "06-reglages-avant"
+  },
+  {
+   "realclick": {
+    "sel": "[data-settings-jump=\"reg-emplacements\"]"
+   }
+  },
+  {
+   "wait": 1200
+  },
+  {
+   "assert": "(() => { const r = document.querySelector('#reg-emplacements').getBoundingClientRect(); const h = document.querySelector('.settings-toc').getBoundingClientRect().top; return r.top >= 0 && r.bottom <= innerHeight && h < 0; })()",
+   "label": "Emplacements est a l'ecran, le sommaire est remonte hors champ"
+  },
+  {
+   "shot": "07-reglages-apres"
+  },
+  {
+   "eval": "location.hash = '#/rendus'"
+  },
+  {
+   "waitFor": "document.querySelectorAll('.rendu-groupe').length > 0 || Boolean(document.querySelector('.rendu-vide'))",
+   "timeout": 20000,
+   "label": "la page des rendus"
+  },
+  {
+   "wait": 500
+  },
+  {
+   "shot": "08-rendus"
+  },
+  {
+   "eval": "location.hash = '#/projets'"
+  },
+  {
+   "waitFor": "document.querySelectorAll('[data-project-card]').length > 8",
+   "timeout": 20000,
+   "label": "les projets"
+  },
+  {
+   "wait": 600
+  },
+  {
+   "eval": "[...document.querySelectorAll('[data-project-card]')].filter(c => c.querySelector('.s-perdu')).length"
+  },
+  {
+   "realclick": {
+    "sel": ".p-card:has(.s-perdu) [data-project-menu]"
+   }
+  },
+  {
+   "wait": 800
+  },
+  {
+   "assert": "[...document.querySelectorAll('.menu-item, [role=\"menuitem\"]')].some(e => e.textContent.includes('Repointer le fichier source'))",
+   "label": "Repointer est propose"
+  },
+  {
+   "shot": "09-repointer"
+  },
+  {
+   "realclick": {
+    "sel": "#menu .menu-item",
+    "text": "Repointer le fichier source"
+   }
+  },
+  {
+   "waitFor": "document.querySelector('#prompt-dialog[open]')",
+   "timeout": 5000,
+   "label": "le dialogue de repointage"
+  },
+  {
+   "eval": "(()=>{const i=document.querySelector('#prompt-input');i.value=i.value.replace('/avant/','/apres/');return i.value})()"
+  },
+  {
+   "realclick": {
+    "sel": "#prompt-submit"
+   }
+  },
+  {
+   "waitFor": "[...document.querySelectorAll('.toast')].some(t=>t.textContent.includes('Source repointée'))",
+   "timeout": 8000,
+   "label": "la source est repointée"
+  },
+  {
+   "wait": 800
+  },
+  {
+   "assert": "![...document.querySelectorAll('[data-project-card]')].some(c=>c.querySelector('.s-perdu'))",
+   "label": "le fichier n'est plus perdu"
+  },
+  {
+   "shot": "09b-repointe"
+  },
+  {
+   "eval": "document.body.click()"
+  },
+  {
+   "wait": 400
+  },
+  {
+   "realclick": {
+    "sel": "[data-folder-row]"
+   }
+  },
+  {
+   "waitFor": "Boolean(document.querySelector('[data-folder-menu].button'))",
+   "timeout": 20000,
+   "label": "la page du dossier"
+  },
+  {
+   "wait": 500
+  },
+  {
+   "realclick": {
+    "sel": "[data-folder-menu].button"
+   }
+  },
+  {
+   "wait": 800
+  },
+  {
+   "assert": "[...document.querySelectorAll('.menu-item, [role=\"menuitem\"]')].map(e => e.textContent).join('|').includes('Exporter la liste')",
+   "label": "les actions du dossier"
+  },
+  {
+   "shot": "10-dossier-actions"
+  }
+ ]
+}

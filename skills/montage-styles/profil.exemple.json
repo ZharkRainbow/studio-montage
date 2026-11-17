@@ -1,0 +1,14 @@
+{
+ "_aide": "Copier ce fichier en ~/.config/studio-montage/profil.json et remplir. Tout est facultatif.",
+ "marque": "",
+ "luts_dir": "~/.config/studio-montage/luts",
+ "lut_log": null,
+ "sfx_dir": "~/.config/studio-montage/sfx",
+ "musique_dir": "~/.config/studio-montage/musiques",
+ "musique_defaut": {
+  "fichier": null,
+  "debut": 0
+ },
+ "polices_dir": "~/Library/Fonts",
+ "atelier": "http://localhost:8768"
+}

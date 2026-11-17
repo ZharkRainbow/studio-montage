@@ -1,0 +1,113 @@
+{
+ "name": "paroles",
+ "path": "/?qa=1#/projets",
+ "steps": [
+  {
+   "viewport": [
+    1512,
+    950
+   ]
+  },
+  {
+   "waitFor": "document.querySelectorAll('[data-project-card], [data-project-row]').length >= 2",
+   "timeout": 10000,
+   "label": "la bibliothèque est chargée"
+  },
+  {
+   "press": "Ctrl+k"
+  },
+  {
+   "waitFor": "document.querySelector('#palette')?.open",
+   "timeout": 5000,
+   "label": "la palette s'ouvre au clavier"
+  },
+  {
+   "insert": "budget"
+  },
+  {
+   "waitFor": "[...document.querySelectorAll('.palette-group')].some(el => el.textContent.startsWith('Paroles'))",
+   "timeout": 8000,
+   "label": "le groupe Paroles apparaît"
+  },
+  {
+   "assert": "document.querySelectorAll('.palette-item').length >= 2",
+   "label": "au moins deux passages trouvés"
+  },
+  {
+   "assert": "[...document.querySelectorAll('.palette-item-label')].some(el => el.textContent.includes('le budget a suivi'))",
+   "label": "le passage de l'entretien est cité"
+  },
+  {
+   "assert": "[...document.querySelectorAll('.palette-item-hint')].some(el => el.textContent.includes('le rush')) && [...document.querySelectorAll('.palette-item-hint')].some(el => el.textContent.includes('Atelier canapé'))",
+   "label": "la piste et le projet sont dits"
+  },
+  {
+   "shot": "paroles"
+  },
+  {
+   "assert": "fetch('/api/recherche?q=change%20de%20methode').then(r => r.json()).then(d => d.extraits.length === 1 && d.extraits[0].piste === 'le rush')",
+   "label": "la requête traverse les mots et ignore les accents"
+  },
+  {
+   "assert": "fetch('/api/recherche?q=bu').then(r => r.json()).then(d => d.extraits.length === 0)",
+   "label": "deux lettres ne cherchent rien"
+  },
+  {
+   "assert": "fetch('/api/recherche?q=lumiere%20du%20soir').then(r => r.json()).then(d => d.extraits.length === 1 && d.extraits[0].piste === 'V1')",
+   "label": "une version déposée répond sous son propre nom"
+  },
+  {
+   "assert": "fetch('/api/recherche?q=' + encodeURIComponent('x'.repeat(5000))).then(r => r.ok && r.json()).then(d => d && d.extraits.length === 0)",
+   "label": "une requête démesurée ne fait pas tomber le serveur"
+  },
+  {
+   "eval": "(() => { const i = document.querySelector('#palette-input'); i.value = 'zzzzzzzz'; i.dispatchEvent(new Event('input', { bubbles: true })); return true; })()"
+  },
+  {
+   "wait": 700
+  },
+  {
+   "waitFor": "document.querySelector('.palette-empty')",
+   "timeout": 5000,
+   "label": "un mot jamais dit ne trouve rien"
+  },
+  {
+   "eval": "(() => { const i = document.querySelector('#palette-input'); i.value = 'Réglages'; i.dispatchEvent(new Event('input', { bubbles: true })); return true; })()"
+  },
+  {
+   "wait": 700
+  },
+  {
+   "assert": "[...document.querySelectorAll('.palette-group')].some(el => el.textContent === 'Navigation') && ![...document.querySelectorAll('.palette-group')].some(el => el.textContent.startsWith('Paroles'))",
+   "label": "la palette d'avant n'a pas bougé : Navigation répond, les paroles se taisent"
+  },
+  {
+   "eval": "(() => { const i = document.querySelector('#palette-input'); i.value = 'budget'; i.dispatchEvent(new Event('input', { bubbles: true })); return true; })()"
+  },
+  {
+   "waitFor": "[...document.querySelectorAll('.palette-group')].some(el => el.textContent.startsWith('Paroles'))",
+   "timeout": 8000,
+   "label": "les paroles reviennent"
+  },
+  {
+   "press": "Enter"
+  },
+  {
+   "waitFor": "location.hash.startsWith('#/projet/')",
+   "timeout": 8000,
+   "label": "le passage choisi ouvre son projet"
+  },
+  {
+   "waitFor": "[...document.querySelectorAll('.toast')].some(el => el.textContent.includes('Passage à'))",
+   "timeout": 5000,
+   "label": "le temps du passage est annoncé"
+  },
+  {
+   "assert": "![...document.querySelectorAll('.toast.error')].length",
+   "label": "aucun toast d'erreur"
+  },
+  {
+   "shot": "paroles-ouvert"
+  }
+ ]
+}

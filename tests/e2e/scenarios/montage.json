@@ -1,0 +1,183 @@
+{
+ "name": "montage",
+ "path": "/?qa=1#/projets",
+ "timeout": 300000,
+ "steps": [
+  {
+   "viewport": [
+    1600,
+    1000
+   ]
+  },
+  {
+   "waitFor": "document.querySelector('[data-open-project]')",
+   "timeout": 15000,
+   "label": "bibliothèque"
+  },
+  {
+   "realclick": "[data-open-project]"
+  },
+  {
+   "waitFor": "A.state.project && document.querySelector('#steps button')",
+   "timeout": 20000,
+   "label": "projet ouvert"
+  },
+  {
+   "realclick": {
+    "sel": "#steps button",
+    "text": "Montage"
+   }
+  },
+  {
+   "waitFor": "document.querySelector('[data-remove-silences]')",
+   "timeout": 20000,
+   "label": "étape Montage"
+  },
+  {
+   "assert": "(() => { const etapes = [...document.querySelectorAll('#steps button')].map(b => b.textContent); return etapes.length === 2 && etapes[0].includes('Montage') && etapes[1].includes('Relecture'); })()",
+   "label": "deux étapes, et pas une de plus"
+  },
+  {
+   "assert": "A.state.project.montage.segments.length === 1",
+   "label": "le reel part d'un seul morceau"
+  },
+  {
+   "eval": "(window.__avant = A.model.montageDuration(), true)"
+  },
+  {
+   "realclick": "[data-remove-silences]"
+  },
+  {
+   "waitFor": "A.state.project.montage.segments.length > 1",
+   "timeout": 120000,
+   "label": "blancs supprimés"
+  },
+  {
+   "assert": "A.model.montageDuration() < window.__avant - 1",
+   "label": "le reel raccourcit"
+  },
+  {
+   "assert": "A.state.project.montage.silence_backup && Boolean(document.querySelector('[data-restore-silences]'))",
+   "label": "« Rétablir » est proposé"
+  },
+  {
+   "assert": "document.querySelectorAll('.trim-blank.cut').length > 0",
+   "label": "les coupes se voient sur la timeline"
+  },
+  {
+   "eval": "(() => { const els = [...document.querySelectorAll('.trim-blank.cut:not(.outside)')].sort((a, b) => b.getBoundingClientRect().width - a.getBoundingClientRect().width); window.__i = els[0].dataset.blank; window.__coupes = A.state.project.montage.blanks.filter(b => b.cut !== false).length; window.__duree = A.model.montageDuration(); return window.__i; })()",
+   "label": "le blanc le plus large"
+  },
+  {
+   "realclick": {
+    "at": "(() => { const el = document.querySelector(`[data-blank=\"${window.__i}\"]`); const r = el.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; })()"
+   }
+  },
+  {
+   "waitFor": "A.state.project.montage.blanks.filter(b => b.cut !== false).length === window.__coupes - 1",
+   "timeout": 8000,
+   "label": "un clic garde le blanc"
+  },
+  {
+   "assert": "A.model.montageDuration() > window.__duree + 0.1",
+   "label": "le reel rallonge d'autant"
+  },
+  {
+   "realclick": {
+    "at": "(() => { const el = document.querySelector(`[data-blank=\"${window.__i}\"]`); const r = el.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; })()"
+   }
+  },
+  {
+   "waitFor": "A.state.project.montage.blanks.filter(b => b.cut !== false).length === window.__coupes",
+   "timeout": 8000,
+   "label": "un deuxième clic le recoupe"
+  },
+  {
+   "assert": "Math.abs(A.model.montageDuration() - window.__duree) < 0.05",
+   "label": "aller-retour sans perte"
+  },
+  {
+   "eval": "(window.__debut = A.state.project.montage.blanks[Number(window.__i)].start, true)"
+  },
+  {
+   "drag": {
+    "at": "(() => { const el = document.querySelector(`[data-blank=\"${window.__i}\"]`); const r = el.getBoundingClientRect(); return { x: r.x, y: r.y + r.height / 2 }; })()",
+    "dx": -26,
+    "steps": 6
+   }
+  },
+  {
+   "wait": 400
+  },
+  {
+   "assert": "A.state.project.montage.blanks[Number(window.__i)].start <= window.__debut + 0.001 && A.state.project.montage.segments.every(s => s.end > s.start)",
+   "label": "le bord se tire sans casser les morceaux"
+  },
+  {
+   "realclick": "[data-fit-view]"
+  },
+  {
+   "wait": 300
+  },
+  {
+   "assert": "A.state.trim.start === 0",
+   "label": "« Tout voir » montre le fichier entier"
+  },
+  {
+   "eval": "(window.__fenetre = A.state.trim.end - A.state.trim.start, true)"
+  },
+  {
+   "wheel": {
+    "sel": "#trim-track",
+    "dy": -260
+   }
+  },
+  {
+   "waitFor": "A.state.trim.end - A.state.trim.start < window.__fenetre - 0.5",
+   "timeout": 6000,
+   "label": "la molette zoome"
+  },
+  {
+   "shot": "blancs"
+  },
+  {
+   "waitFor": "P().then(p => p.montage.blanks.length === A.state.project.montage.blanks.length && p.montage.segments.length === A.state.project.montage.segments.length)",
+   "timeout": 20000,
+   "label": "blancs et morceaux enregistrés tels quels"
+  },
+  {
+   "realclick": "[data-montage-field=\"title\"]"
+  },
+  {
+   "insert": "Systèmes & talents"
+  },
+  {
+   "press": "Tab"
+  },
+  {
+   "realclick": "[data-montage-field=\"hook\"]"
+  },
+  {
+   "insert": "Ce que personne ne te dit sur le recrutement."
+  },
+  {
+   "press": "Tab"
+  },
+  {
+   "waitFor": "P().then(p => p.montage.title === 'Systèmes & talents' && p.montage.hook.startsWith('Ce que personne') && p.montage.segments.length > 1)",
+   "timeout": 20000,
+   "label": "titre, accroche et coupes enregistrés"
+  },
+  {
+   "assert": "!document.querySelector('#trim-title').hidden && document.querySelector('#trim-title').textContent.includes('Systèmes & talents')",
+   "label": "le titre se voit sur la timeline"
+  },
+  {
+   "assert": "![...document.querySelectorAll('.toast.error')].length",
+   "label": "aucun toast d'erreur"
+  },
+  {
+   "shot": "montage"
+  }
+ ]
+}

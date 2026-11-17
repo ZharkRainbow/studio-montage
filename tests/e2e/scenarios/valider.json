@@ -1,0 +1,408 @@
+{
+ "name": "valider",
+ "path": "/?qa=1#/projets",
+ "timeout": 1500000,
+ "steps": [
+  {
+   "viewport": [
+    1600,
+    1000
+   ]
+  },
+  {
+   "waitFor": "A.state.folders.some(f => f.name.startsWith('Trois shorts'))",
+   "timeout": 20000,
+   "label": "le dossier de test est là"
+  },
+  {
+   "eval": "(window.__f = A.state.folders.find(f => f.name.startsWith('Trois shorts')).id, window.__valides = () => fetch('/api/projects').then(r => r.json()).then(d => d.projects.filter(p => p.folder_id === window.__f && p.validated_at).length), window.__envois = () => fetch('/api/jobs').then(r => r.json()).then(d => d.jobs.filter(j => j.type === 'relecture')), window.__f)"
+  },
+  {
+   "assert": "!document.querySelector('#save-button') && Boolean(document.querySelector('#save-state'))",
+   "label": "« Enregistrer » a disparu, l'indicateur reste"
+  },
+  {
+   "assert": "fetch('/api/reglages').then(r => r.json()).then(d => d.production_claude === false)",
+   "label": "la production par Claude est éteinte au départ"
+  },
+  {
+   "realclick": {
+    "sel": "[data-folder-row] .side-link",
+    "text": "Trois shorts"
+   }
+  },
+  {
+   "waitFor": "A.state.route?.filter === 'folder' && document.querySelectorAll('[data-project-card]').length === 3",
+   "timeout": 15000,
+   "label": "les trois shorts du dossier"
+  },
+  {
+   "assert": "document.querySelector('#lib-sub').textContent.includes('0 / 3 validés')",
+   "label": "compteur à zéro"
+  },
+  {
+   "realclick": {
+    "sel": "[data-open-project]",
+    "text": "Short 1"
+   }
+  },
+  {
+   "waitFor": "A.state.project?.name.includes('Short 1') && document.querySelector('[data-remove-silences]') && document.querySelector('#send-review-button:not([disabled])')",
+   "timeout": 30000,
+   "label": "Short 1 ouvert sur son montage"
+  },
+  {
+   "eval": "(window.__id1 = A.state.project.id, true)"
+  },
+  {
+   "assert": "document.querySelector('#validate-button').hidden === true && document.querySelector('#send-review-button').hidden === false",
+   "label": "plus de « Valider » au Montage : on envoie en relecture"
+  },
+  {
+   "realclick": "[data-montage-field=\"title\"]"
+  },
+  {
+   "insert": "Trois shorts, un seul geste"
+  },
+  {
+   "press": "Tab"
+  },
+  {
+   "realclick": "[data-montage-field=\"hook\"]"
+  },
+  {
+   "insert": "Il a fait 40 000 € en 3 mois / sans publicité"
+  },
+  {
+   "press": "Tab"
+  },
+  {
+   "waitFor": "P().then(p => p.montage.title === 'Trois shorts, un seul geste' && p.montage.hook.startsWith('Il a fait 40 000'))",
+   "timeout": 20000,
+   "label": "titre et accroche à deux étages enregistrés"
+  },
+  {
+   "shot": "envoyer-en-relecture"
+  },
+  {
+   "realclick": "#send-review-button"
+  },
+  {
+   "waitFor": "window.__envois().then(e => e.length === 1 && e[0].state === 'succeeded')",
+   "timeout": 240000,
+   "label": "l'export encadré est fait"
+  },
+  {
+   "waitFor": "A.state.step === 'review' && A.state.project?.versions?.length === 1",
+   "timeout": 30000,
+   "label": "la relecture s'ouvre sur la version qui vient d'arriver"
+  },
+  {
+   "assert": "(async () => { const p = await (await fetch('/api/projects/' + window.__id1)).json(); const v = p.versions[0]; window.__v1 = v.duration; return p.export.encadre === true && p.export.state === 'fait' && p.export.remux === false && v.path === p.export.path && v.montage_hash === p.montage_hash && !p.validated_at; })()",
+   "label": "la version est l'export encadré, et le short n'est pas validé pour autant"
+  },
+  {
+   "assert": "!document.querySelector('[data-stale-banner]')",
+   "label": "aucun bandeau : la relecture montre bien le montage du jour"
+  },
+  {
+   "shot": "relecture-encadree"
+  },
+  {
+   "realclick": {
+    "sel": "#steps button",
+    "text": "Montage"
+   }
+  },
+  {
+   "waitFor": "document.querySelector('[data-trim-nudge=\"start:0.5\"]')",
+   "timeout": 20000,
+   "label": "retour au Montage"
+  },
+  {
+   "eval": "(window.__debut = A.state.project.montage.segments[0].start, true)"
+  },
+  {
+   "realclick": "[data-trim-nudge=\"start:0.5\"]"
+  },
+  {
+   "realclick": "[data-trim-nudge=\"start:0.5\"]"
+  },
+  {
+   "realclick": "[data-trim-nudge=\"start:0.5\"]"
+  },
+  {
+   "realclick": "[data-trim-nudge=\"start:0.5\"]"
+  },
+  {
+   "waitFor": "P().then(p => p.montage.segments[0].start >= window.__debut + 1.9)",
+   "timeout": 20000,
+   "label": "le début est recoupé de 2 s, et enregistré"
+  },
+  {
+   "waitFor": "document.querySelector('#send-review-button').classList.contains('is-stale')",
+   "timeout": 10000,
+   "label": "au Montage, le bouton s'allume : la relecture date d'avant la retouche"
+  },
+  {
+   "realclick": {
+    "sel": "#steps button",
+    "text": "Relecture"
+   }
+  },
+  {
+   "waitFor": "document.querySelector('[data-stale-banner]')",
+   "timeout": 20000,
+   "label": "le bandeau « ancien montage » apparaît"
+  },
+  {
+   "assert": "document.querySelector('[data-stale-banner]').textContent.includes('La relecture montre un ancien montage')",
+   "label": "il dit ce qu'il se passe"
+  },
+  {
+   "shot": "bandeau-ancien-montage"
+  },
+  {
+   "realclick": "[data-send-review]"
+  },
+  {
+   "waitFor": "window.__envois().then(e => e.length === 2 && e.every(j => j.state === 'succeeded'))",
+   "timeout": 240000,
+   "label": "le renvoi est fait"
+  },
+  {
+   "waitFor": "A.state.project?.versions?.length === 2 && !document.querySelector('[data-stale-banner]')",
+   "timeout": 30000,
+   "label": "la V2 est là, le bandeau s'en va"
+  },
+  {
+   "assert": "(async () => { const p = await (await fetch('/api/projects/' + window.__id1)).json(); const v2 = p.versions[1]; return Math.abs(window.__v1 - v2.duration - 2) < 0.4 && v2.montage_hash === p.montage_hash; })()",
+   "label": "la V2 démarre 2 s plus loin : elle dure 2 s de moins"
+  },
+  {
+   "realclick": "#validate-button"
+  },
+  {
+   "waitFor": "A.state.project?.name.includes('Short 2')",
+   "timeout": 40000,
+   "label": "le short suivant du dossier s'ouvre tout seul"
+  },
+  {
+   "waitFor": "window.__valides().then(n => n === 1)",
+   "timeout": 15000,
+   "label": "1 / 3 validés"
+  },
+  {
+   "waitFor": "document.querySelector('#send-review-button:not([disabled])')",
+   "timeout": 30000,
+   "label": "Short 2 prêt"
+  },
+  {
+   "realclick": "#send-review-button"
+  },
+  {
+   "waitFor": "A.state.step === 'review' && A.state.project?.versions?.length === 1",
+   "timeout": 240000,
+   "label": "Short 2 relu : un montage sans accroche, donc sans encadré"
+  },
+  {
+   "assert": "P().then(p => p.export.encadre === false && p.export.remux === false)",
+   "label": "pas d'accroche, pas d'encadré"
+  },
+  {
+   "realclick": "#validate-button"
+  },
+  {
+   "waitFor": "A.state.project?.name.includes('Short 3')",
+   "timeout": 40000,
+   "label": "puis le troisième"
+  },
+  {
+   "waitFor": "document.querySelector('#send-review-button:not([disabled])')",
+   "timeout": 30000,
+   "label": "Short 3 prêt"
+  },
+  {
+   "press": "Meta+Enter"
+  },
+  {
+   "waitFor": "A.state.step === 'review' && A.state.project?.versions?.length === 1",
+   "timeout": 240000,
+   "label": "⌘↵ au Montage envoie en relecture"
+  },
+  {
+   "assert": "P().then(p => p.export.remux === true)",
+   "label": "rien à couper, pas d'encadré : le fichier est copié tel quel"
+  },
+  {
+   "press": "Meta+Enter"
+  },
+  {
+   "waitFor": "window.__valides().then(n => n === 3)",
+   "timeout": 30000,
+   "label": "⌘↵ en Relecture valide : 3 / 3"
+  },
+  {
+   "waitFor": "A.state.project?.name.includes('Short 3') && document.querySelector('#validate-button').textContent === 'Validé'",
+   "timeout": 15000,
+   "label": "le dernier reste à l'écran, en « Validé »"
+  },
+  {
+   "assert": "(async () => { const d = await (await fetch('/api/projects')).json(); const dans = d.projects.filter(p => p.folder_id === window.__f); const full = await Promise.all(dans.map(p => fetch('/api/projects/' + p.id).then(r => r.json()))); const par = Object.fromEntries(full.map(p => [p.name.split(' ')[1], p])); return dans.length === 3 && dans.every(p => p.export_path && p.export_state === 'fait') && full.every(p => p.export.bytes > 0 && p.versions.at(-1).path === p.export.path) && par['1'].export.encadre === true && par['3'].export.remux === true && par['2'].export.remux === false; })()",
+   "label": "un export par short, déposé en version : copié quand rien ne change, ré-encodé sinon"
+  },
+  {
+   "assert": "(async () => { const p = await (await fetch('/api/projects/' + window.__id1)).json(); return p.production.consigne === '/montage-reels produis la V1 de ' + p.production.path.replace(/\\/a-produire\\/.*$/, '') && p.production.path.endsWith(window.__id1 + '.json') && p.production.export === 'fait'; })()",
+   "label": "la demande de production attend dans a-produire, l'export déjà fait"
+  },
+  {
+   "realclick": "#crumb-folder"
+  },
+  {
+   "waitFor": "A.state.route?.filter === 'folder' && document.querySelectorAll('[data-project-card]').length === 3",
+   "timeout": 15000,
+   "label": "le fil d’Ariane ramène au dossier"
+  },
+  {
+   "waitFor": "document.querySelector('#lib-sub')?.textContent.includes('3 / 3 validés')",
+   "timeout": 15000,
+   "label": "compteur du dossier à 3 / 3"
+  },
+  {
+   "assert": "document.querySelector('[data-folder-row] .side-count.done')?.textContent === '3/3'",
+   "label": "le dossier affiche 3/3 dans la colonne"
+  },
+  {
+   "assert": "[...document.querySelectorAll('[data-project-card] .status')].filter(e => e.textContent.includes('Validé')).length === 3",
+   "label": "pastille « Validé » sur les trois cartes"
+  },
+  {
+   "shot": "dossier"
+  },
+  {
+   "realclick": {
+    "sel": "[data-open-project]",
+    "text": "Short 1"
+   }
+  },
+  {
+   "waitFor": "A.state.project?.id === window.__id1 && A.state.step === 'review'",
+   "timeout": 30000,
+   "label": "retour sur le premier short, qui rouvre sur sa relecture"
+  },
+  {
+   "assert": "A.state.project.montage.title === 'Trois shorts, un seul geste' && A.state.project.montage.hook.includes('/') && A.state.project.versions.length === 2 && Boolean(A.state.project.export) && Boolean(A.state.project.validated_at)",
+   "label": "rien n'est perdu au retour"
+  },
+  {
+   "realclick": {
+    "sel": "#steps button",
+    "text": "Montage"
+   }
+  },
+  {
+   "waitFor": "document.querySelector('[data-remove-silences]')",
+   "timeout": 20000,
+   "label": "étape Montage"
+  },
+  {
+   "assert": "document.querySelector('#inspector-content').textContent.includes('Montage envoyé') && document.querySelector('#inspector-content').textContent.includes('Encadré d’accroche')",
+   "label": "la section « Montage envoyé » montre l'export et son encadré"
+  },
+  {
+   "assert": "document.querySelector('#inspector-content').textContent.includes('Copier la consigne de production')",
+   "label": "la consigne est copiable depuis l'inspecteur"
+  },
+  {
+   "shot": "valide"
+  },
+  {
+   "realclick": {
+    "sel": "#steps button",
+    "text": "Relecture"
+   }
+  },
+  {
+   "waitFor": "document.querySelector('#validate-button:not([hidden])')",
+   "timeout": 20000,
+   "label": "étape Relecture"
+  },
+  {
+   "realclick": "#validate-button"
+  },
+  {
+   "waitFor": "!A.state.project.validated_at && document.querySelector('#validate-button').textContent === 'Valider'",
+   "timeout": 20000,
+   "label": "un deuxième clic repasse le short en cours"
+  },
+  {
+   "assert": "A.state.project.montage.title === 'Trois shorts, un seul geste' && A.state.project.versions.length === 2 && Boolean(A.state.project.export)",
+   "label": "le montage, les versions et le fichier exporté restent"
+  },
+  {
+   "waitFor": "window.__valides().then(n => n === 2)",
+   "timeout": 15000,
+   "label": "2 / 3 validés"
+  },
+  {
+   "realclick": "#validate-button"
+  },
+  {
+   "waitFor": "window.__valides().then(n => n === 3)",
+   "timeout": 30000,
+   "label": "revalidé sans rien perdre : 3 / 3"
+  },
+  {
+   "assert": "window.__envois().then(e => e.length === 4 && e.every(j => j.state === 'succeeded'))",
+   "label": "valider ne réencode rien : quatre envois en tout, pas un de plus"
+  },
+  {
+   "eval": "(location.hash = '#/reglages', true)"
+  },
+  {
+   "waitFor": "document.querySelector('[data-reglage=\"production_claude\"]') && document.querySelector('[data-reglage=\"polices_dir\"]')",
+   "timeout": 15000,
+   "label": "écran Réglages"
+  },
+  {
+   "assert": "document.querySelector('[data-reglage=\"production_claude\"]').checked === false && [...document.querySelectorAll('#settings-view .shortcut')].some(s => s.textContent.includes('Envoyer en relecture') && s.textContent.includes('⌘') && s.textContent.includes('↵'))",
+   "label": "réglage éteint, raccourci ⌘ ↵ documenté"
+  },
+  {
+   "eval": "([...document.querySelectorAll('[data-toast-close]')].forEach(b => b.click()), true)"
+  },
+  {
+   "waitFor": "!document.querySelector('#toasts .toast')",
+   "timeout": 8000,
+   "label": "plus aucun toast devant la case à cocher"
+  },
+  {
+   "realclick": "[data-reglage=\"production_claude\"]"
+  },
+  {
+   "waitFor": "fetch('/api/reglages').then(r => r.json()).then(d => d.production_claude === true)",
+   "timeout": 15000,
+   "label": "la production par Claude s'allume"
+  },
+  {
+   "waitFor": "!document.querySelector('#toasts .toast')",
+   "timeout": 8000,
+   "label": "plus aucun toast devant la case à cocher"
+  },
+  {
+   "realclick": "[data-reglage=\"production_claude\"]"
+  },
+  {
+   "waitFor": "fetch('/api/reglages').then(r => r.json()).then(d => d.production_claude === false)",
+   "timeout": 15000,
+   "label": "et s'éteint"
+  },
+  {
+   "assert": "![...document.querySelectorAll('.toast.error')].length",
+   "label": "aucun toast d'erreur"
+  },
+  {
+   "shot": "reglages"
+  }
+ ]
+}
