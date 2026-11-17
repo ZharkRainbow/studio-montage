@@ -52,8 +52,15 @@ mkdir -p "$HOME/.config/studio-montage/luts" "$HOME/.config/studio-montage/sfx" 
 if [ -f "$PROFIL" ]; then ok "profil gardé : $PROFIL"; else cp "$ICI/skills/montage-styles/profil.exemple.json" "$PROFIL" && ok "profil créé : $PROFIL (à remplir)"; fi
 
 echo "6. Vérification"
-cd "$ICI" && python3 -m studio doctor | tail -15
-
+DIAG=$(cat <<'PY'
+import json, sys
+for c in json.load(sys.stdin).get('requirements', []):
+    etat = 'OK  ' if c.get('available') else ('NON ' if c.get('required') else '--  ')
+    suite = '' if c.get('available') else '  ->  ' + c.get('install', '')
+    print('  ' + etat + ' ' + c.get('label', '') + suite)
+PY
+)
+cd "$ICI" && python3 -m studio doctor | python3 -c "$DIAG"
 echo
 if [ "$MANQUE" = 0 ]; then
   echo "Tout est prêt. Lancer l'Atelier : double-clic sur « Ouvrir Studio.command », ou python3 -m studio --open"
