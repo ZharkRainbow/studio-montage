@@ -7,7 +7,17 @@ Un studio de montage pour reels et shorts, qui tourne en local sur ton Mac, avec
 
 Rien ne quitte ta machine : la transcription se fait en local.
 
-## Installer
+## Installer en un copier-coller
+
+Ouvre Claude Code et colle ce message :
+
+```
+Installe le studio de montage : https://github.com/ZharkRainbow/studio-montage — clone-le dans ~/Documents/studio-montage, lis le README et lance bash installer.sh.
+```
+
+Claude installe tout. Quand c'est fini, ferme Claude Code et rouvre-le.
+
+## Installer à la main
 
 Il faut un Mac (Apple Silicon conseillé), [Homebrew](https://brew.sh) et [Claude Code](https://claude.com/claude-code).
 
